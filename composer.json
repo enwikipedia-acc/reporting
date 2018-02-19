@@ -1,0 +1,5 @@
+{
+    "require": {
+        "joshtronic/php-projecthoneypot": "dev-master"
+    }
+}
