@@ -15,7 +15,7 @@ require('functions.php');
 
 $database = new PDO($dburl, $dbuser, $dbpass);
 
-$stmt = $database->query("select id from request where status = 'Open' and emailconfirm = 'Confirmed'");
+$stmt = $database->query("SELECT id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed'");
 $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $stmt->closeCursor();
 
@@ -24,7 +24,7 @@ $oldRequestData = unserialize(file_get_contents('rqdata.dat'));
 $requestData = [];
 
 foreach ($result as $id) {
-    if(isset($oldRequestData[$id])) {
+    if (isset($oldRequestData[$id])) {
         $requestData[$id] = $oldRequestData[$id];
         unset($oldRequestData[$id]);
     }

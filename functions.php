@@ -48,7 +48,8 @@ function writeBlockData($requestData)
     fclose($repBlocks);
 }
 
-function writeLog($requestData) {
+function writeLog($requestData)
+{
     $total = count($requestData);
     $i = 0;
 
@@ -57,15 +58,15 @@ function writeLog($requestData) {
 
     foreach ($requestData as $id => $logData) {
         fwrite($repLog, '<li>Processing #' . $id . ' - ' . ++$i . ' / ' . $total . '<ul>');
-            foreach($logData as $datum) {
-                if ($datum['d'] !== null) {
-                    $fullMessage = $datum['m'] . ' - <code>' . htmlentities($datum['d']) . '</code>';
-                } else {
-                    $fullMessage = $datum['m'];
-                }
-
-                fwrite($repLog, '<li>' . $fullMessage . '</li>');
+        foreach ($logData as $datum) {
+            if ($datum['d'] !== null) {
+                $fullMessage = $datum['m'] . ' - <code>' . htmlentities($datum['d']) . '</code>';
+            } else {
+                $fullMessage = $datum['m'];
             }
+
+            fwrite($repLog, '<li>' . $fullMessage . '</li>');
+        }
         fwrite($repLog, '</ul></li>');
     }
 
@@ -73,7 +74,8 @@ function writeLog($requestData) {
     fclose($repLog);
 }
 
-function writeCreateData($requestData) {
+function writeCreateData($requestData)
+{
     $repCreate = fopen('create.html', 'w');
 
     fwrite($repCreate, '<ul>');
@@ -81,8 +83,8 @@ function writeCreateData($requestData) {
     global $database;
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
-    foreach($requestData as $id => $data) {
-        if(count($data) === 0) {
+    foreach ($requestData as $id => $data) {
+        if (count($data) === 0) {
             $stmt->execute([':id' => $id]);
             $name = $stmt->fetchColumn();
             $stmt->closeCursor();
@@ -96,7 +98,8 @@ function writeCreateData($requestData) {
     fclose($repCreate);
 }
 
-function writeSelfCreateData($requestData) {
+function writeSelfCreateData($requestData)
+{
     $repSelfcreate = fopen('selfcreate.html', 'w');
 
     fwrite($repSelfcreate, '<table>');
@@ -104,9 +107,9 @@ function writeSelfCreateData($requestData) {
     global $database;
     $stmt = $database->prepare('SELECT date, name FROM request WHERE id = :id');
 
-    foreach($requestData as $id => $data) {
-        foreach($data as $datum) {
-            if($datum['m'] === REJ_SELFCREATE) {
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_SELFCREATE) {
                 $stmt->execute([':id' => $id]);
                 $req = $stmt->fetch(PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
@@ -132,7 +135,8 @@ function writeSelfCreateData($requestData) {
     fclose($repSelfcreate);
 }
 
-function writeDqBlacklistData($requestData) {
+function writeDqBlacklistData($requestData)
+{
     $repDqBlacklist = fopen('dqblacklist.html', 'w');
 
     fwrite($repDqBlacklist, '<ul>');
@@ -140,14 +144,14 @@ function writeDqBlacklistData($requestData) {
     global $database;
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
-    foreach($requestData as $id => $data) {
-        foreach($data as $datum) {
-            if($datum['m'] === REJ_DQBLACKLIST) {
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_DQBLACKLIST) {
                 $stmt->execute([':id' => $id]);
                 $req = $stmt->fetchColumn();
                 $stmt->closeCursor();
 
-                fwrite($repDqBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (".htmlentities($req).") matches: " . htmlentities($datum['d']) . "</a></li>");
+                fwrite($repDqBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
             }
         }
     }
@@ -157,7 +161,8 @@ function writeDqBlacklistData($requestData) {
     fclose($repDqBlacklist);
 }
 
-function writeBlacklistData($requestData) {
+function writeBlacklistData($requestData)
+{
     $repBlacklist = fopen('blacklist.html', 'w');
 
     fwrite($repBlacklist, '<ul>');
@@ -165,14 +170,14 @@ function writeBlacklistData($requestData) {
     global $database;
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
-    foreach($requestData as $id => $data) {
-        foreach($data as $datum) {
-            if($datum['m'] === REJ_BLACKLIST) {
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_BLACKLIST) {
                 $stmt->execute([':id' => $id]);
                 $req = $stmt->fetchColumn();
                 $stmt->closeCursor();
 
-                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (".htmlentities($req).") matches: " . htmlentities($datum['d']) . "</a></li>");
+                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
             }
         }
     }
