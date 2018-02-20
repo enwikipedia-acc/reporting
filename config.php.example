@@ -1,0 +1,10 @@
+<?php
+
+$dbuser='';
+$dbpass='';
+$dburl ='mysql:host=localhost;dbname=waca';
+
+$honeypotKey = '';
+
+$wikiuser = '';
+$wikipass = '';
