@@ -12,15 +12,16 @@ $cookieJar = tempnam("/tmp", "CURLCOOKIE");
 $curlOpt = array(
     CURLOPT_COOKIEFILE => $cookieJar,
     CURLOPT_COOKIEJAR => $cookieJar,
-		CURLOPT_RETURNTRANSFER => 1,
-		CURLOPT_USERAGENT => 'Wikipedia-Account-Creation-Tool/6.8 ReportScript/0.1 (+mailto:wikimedia@stwalkerster.co.uk)',
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_USERAGENT => 'Wikipedia-Account-Creation-Tool/6.8 ReportScript/0.1 (+mailto:wikimedia@stwalkerster.co.uk)',
 
 );
 
 const API_META = 'https://meta.wikimedia.org/w/api.php';
 const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
 
-function apiQuery($base, array $params, array $substitutions, $post = false) {
+function apiQuery($base, array $params, array $substitutions, $post = false)
+{
     global $curlOpt;
 
     $usableParams = [];
@@ -39,32 +40,33 @@ function apiQuery($base, array $params, array $substitutions, $post = false) {
 
     $queryString = http_build_query($usableParams);
 
-	$url = $base;
+    $url = $base;
 
-	if(!$post) {
-		$url .= '?' . $queryString;
-	}
+    if (!$post) {
+        $url .= '?' . $queryString;
+    }
 
     $ch = curl_init();
     curl_setopt_array($ch, $curlOpt);
     curl_setopt($ch, CURLOPT_URL, $url);
 
-	if($post) {
-		curl_setopt($ch, CURLOPT_POST, true);
-    	curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
-	}
+    if ($post) {
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
+    }
 
     $data = curl_exec($ch);
 
-    if(curl_errno($ch)) {
+    if (curl_errno($ch)) {
         die('cURL Error: ' . curl_error($ch));
     }
 
     return json_decode($data);
 }
 
-function login() {
-    $tokenResult = apiQuery(API_ENWIKI, ['action'=>'query','meta'=>'tokens','type'=>'login'], ['','','']);
+function login()
+{
+    $tokenResult = apiQuery(API_ENWIKI, ['action' => 'query', 'meta' => 'tokens', 'type' => 'login'], ['', '', '']);
 
     $logintoken = $tokenResult->query->tokens->logintoken;
 
@@ -74,8 +76,8 @@ function login() {
         'action' => 'login',
         'lgname' => $wikiuser,
         'lgpassword' => $wikipass,
-        'lgtoken' => $logintoken
-    ], ['','',''], true);
+        'lgtoken' => $logintoken,
+    ], ['', '', ''], true);
 }
 login();
 
@@ -91,7 +93,7 @@ $resultCount = count($result);
 $usernameBlacklistQuery = [
     'action' => 'titleblacklist',
     'tbaction' => 'new-account',
-    'tbtitle' => 'User:{2}'
+    'tbtitle' => 'User:{2}',
 ];
 
 $enwikiGeneralQuery = [
@@ -101,7 +103,7 @@ $enwikiGeneralQuery = [
     'bkip' => '{0}',
 
     'afluser' => '{0}',
-    'aflstart'=>'{1}',
+    'aflstart' => '{1}',
     'afldir' => 'newer',
 
     'ucuser' => '{0}',
