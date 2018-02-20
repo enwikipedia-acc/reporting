@@ -6,3 +6,5 @@ dqblacklist.html
 log.html
 selfcreate.html
 vendor/
+composer.phar
+.idea

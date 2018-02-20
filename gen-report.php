@@ -1,6 +1,6 @@
 <?php
 
-chdir('/srv/dev/report');
+chdir(__DIR__);
 
 require('vendor/autoload.php');
 require('config.php');
