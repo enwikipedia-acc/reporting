@@ -25,7 +25,7 @@ $oldRequestData = unserialize(file_get_contents('rqdata.dat'));
 $requestData = [];
 
 foreach ($result as $id) {
-    if(isset($oldRequestData[$id])) {
+    if (isset($oldRequestData[$id])) {
         $requestData[$id] = $oldRequestData[$id];
         unset($oldRequestData[$id]);
     }
