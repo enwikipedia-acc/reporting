@@ -8,6 +8,7 @@ require('functions.php');
 $hpbl = new joshtronic\ProjectHoneyPot($honeypotKey);
 
 $database = new PDO($dburl, $dbuser, $dbpass);
+$database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $cookieJar = tempnam("/tmp", "CURLCOOKIE");
 $curlOpt = array(
@@ -114,7 +115,7 @@ function l($request, $message, $data = null)
 
 login();
 
-$stmt = $database->query("select id, name, forwardedip, date from request where status = 'Open' and emailconfirm = 'Confirmed'");
+$stmt = $database->query("select id, name, forwardedip, date from request where status = 'Open' and emailconfirm = 'Confirmed' and reserved = 0");
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $resultCount = count($result);
