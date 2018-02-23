@@ -16,7 +16,7 @@ require('functions.php');
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$stmt = $database->query("select id from request where status = 'Open' and emailconfirm = 'Confirmed' and reserved = 0");
+$stmt = $database->query("SELECT id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0");
 $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $stmt->closeCursor();
 

@@ -115,7 +115,7 @@ function l($request, $message, $data = null)
 
 login();
 
-$stmt = $database->query("select id, name, forwardedip, date from request where status = 'Open' and emailconfirm = 'Confirmed' and reserved = 0");
+$stmt = $database->query("SELECT id, name, forwardedip, date FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0");
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $resultCount = count($result);
