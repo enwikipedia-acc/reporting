@@ -203,11 +203,19 @@ AND substring_index(email, '@', -1) NOT IN (
   , 'aol.com'
   , 'live.com'
   , 'att.net'
+  , 'att.com'
   , 'blueyonder.co.uk'
   , 'earthlink.net'
   , 'rocketmail.com'
   , 'yahoo.co.uk'
   , 'yahoo.in'
+  , 'bigpond.net.au'
+  , 'bigpond.com'
+  , 'eastlink.ca'
+  , 'gmx.com'
+  , 'mail.com'
+  , 'mailbox.org'
+  , 'msn.com'
 )
 ORDER BY 1 ASC
 SQL
