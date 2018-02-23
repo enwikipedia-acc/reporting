@@ -12,6 +12,7 @@ require('functions.php');
 @unlink('dqblacklist.html');
 @unlink('log.html');
 @unlink('selfcreate.html');
+@unlink('email.html');
 
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -41,3 +42,6 @@ writeCreateData($requestData);
 writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
+writeEmailReport();
+
+echo "Done.\n";

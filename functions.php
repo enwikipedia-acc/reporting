@@ -186,3 +186,47 @@ function writeBlacklistData($requestData)
 
     fclose($repBlacklist);
 }
+
+function writeEmailReport()
+{
+    global $database;
+
+    $stmt = $database->query(<<<SQL
+SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0
+AND substring_index(email, '@', -1) NOT IN (
+    'gmail.com'
+  , 'googlemail.com'
+  , 'yahoo.com'
+  , 'hotmail.com'
+  , 'outlook.com'
+  , 'icloud.com'
+  , 'aol.com'
+  , 'live.com'
+  , 'att.net'
+  , 'blueyonder.co.uk'
+  , 'earthlink.net'
+  , 'rocketmail.com'
+  , 'yahoo.co.uk'
+  , 'yahoo.in'
+)
+ORDER BY 1 ASC
+SQL
+    );
+
+    $groups = $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);
+    $stmt->closeCursor();
+
+    $repEmail = fopen('email.html', 'w');
+
+    foreach ($groups as $k => $idList) {
+        fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
+
+        foreach ($idList as $id) {
+            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a></li>');
+        }
+
+        fwrite($repEmail, '</ul>');
+    }
+
+    fclose($repEmail);
+}

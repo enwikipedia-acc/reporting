@@ -103,7 +103,7 @@ function initialiseDeltaQuadBlacklist()
 
 function l($request, $message, $data = null)
 {
-    global $requestData, $repLog;
+    global $requestData;
 
     if (!isset($requestData[$request])) {
         $requestData[$request] = [];
@@ -316,9 +316,11 @@ writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeLog($requestData);
+writeEmailReport();
 
 file_put_contents('rqdata.dat', serialize($requestData));
 
 
 unlink($cookieJar);
 
+echo "Done.\n";
