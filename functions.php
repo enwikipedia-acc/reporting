@@ -78,22 +78,22 @@ function writeCreateData($requestData)
 {
     $repCreate = fopen('create.html', 'w');
 
-    fwrite($repCreate, '<ul>');
+    fwrite($repCreate, '<table>');
 
     global $database;
-    $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
+    $stmt = $database->prepare('SELECT name, date FROM request WHERE id = :id');
 
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
             $stmt->execute([':id' => $id]);
-            $name = $stmt->fetchColumn();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
-            fwrite($repCreate, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $name . "</a></li>");
+            fwrite($repCreate, '<tr><td>'. $data['date'] .'</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
         }
     }
 
-    fwrite($repCreate, '</ul>');
+    fwrite($repCreate, '</table>');
 
     fclose($repCreate);
 }
