@@ -21,6 +21,10 @@ $stmt = $database->query("SELECT id FROM request WHERE status = 'Open' AND email
 $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $stmt->closeCursor();
 
+if (!file_exists('rqdata.dat')) {
+    die("Data file doesn't exist. Run gen-report.php instead.");
+}
+
 $oldRequestData = unserialize(file_get_contents('rqdata.dat'));
 
 $requestData = [];

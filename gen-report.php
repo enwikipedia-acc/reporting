@@ -233,7 +233,7 @@ foreach ($result as $req) {
                     continue;
                 }
 
-                l($id, REJ_LOCALBLOCK, $b->reason);
+                l($id, REJ_LOCALBLOCK, [$b->reason, $b->user]);
             }
         }
 

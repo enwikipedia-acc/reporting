@@ -13,24 +13,26 @@ function writeBlockData($requestData)
     foreach ($requestData as $id => $logs) {
         foreach ($logs as $data) {
             if ($data['m'] === REJ_LOCALBLOCK) {
-                if (!isset($localBlocks[$data['d']])) {
+                if (!isset($localBlocks[$data['d'][0]])) {
                     $localBlocks[$data['d']] = [];
                 }
 
-                $localBlocks[$data['d']][] = $id;
+                $localBlocks[$data['d'][0]][] = [$id, $data['d'][1]];
             }
         }
     }
 
     $repBlocks = fopen('blocks.html', 'w');
 
+    fwrite($repBlocks, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style>');
+
     foreach ($localBlocks as $reason => $values) {
-        fwrite($repBlocks, '<h3>' . htmlentities($reason) . '</h3><ul>');
+        fwrite($repBlocks, '<h3>' . htmlentities($reason) . '</h3><table>');
 
         foreach ($values as $v) {
-            fwrite($repBlocks, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v . '">' . $v . '</a><ul>');
+            fwrite($repBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v[0] . '">' . $v[0] . '</a></td><td></td><td><ul>');
 
-            foreach ($requestData[$v] as $logData) {
+            foreach ($requestData[$v[0]] as $logData) {
                 // skip the block information, we already know!
                 if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
                     continue;
@@ -39,10 +41,10 @@ function writeBlockData($requestData)
                 fwrite($repBlocks, '<li>' . $logData['m'] . '</li>');
             }
 
-            fwrite($repBlocks, '</ul></li>');
+            fwrite($repBlocks, '</ul></td></tr>');
         }
 
-        fwrite($repBlocks, '</ul>');
+        fwrite($repBlocks, '</table>');
     }
 
     fclose($repBlocks);
@@ -89,7 +91,7 @@ function writeCreateData($requestData)
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
-            fwrite($repCreate, '<tr><td>'. $data['date'] .'</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
+            fwrite($repCreate, '<tr><td>' . $data['date'] . '</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
         }
     }
 
@@ -230,13 +232,19 @@ SQL
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
 
         foreach ($idList as $id) {
-            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a><ul>');
+            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a>');
 
-            foreach ($requestData[$id] as $logData) {
-                fwrite($repEmail, '<li>' . $logData['m'] . '</li>');
+            if (isset($requestData[$id])) {
+                fwrite($repEmail, '<ul>');
+                foreach ($requestData[$id] as $logData) {
+                    fwrite($repEmail, '<li>' . $logData['m'] . '</li>');
+                }
+                fwrite($repEmail, '</ul>');
+            } else {
+                fwrite($repEmail, ' - <em>No data for this request</em>');
             }
 
-            fwrite($repEmail, '</ul></li>');
+            fwrite($repEmail, '</li>');
         }
 
         fwrite($repEmail, '</ul>');
