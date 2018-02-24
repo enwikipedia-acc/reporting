@@ -95,11 +95,9 @@ function writeCreateData($requestData)
 
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
-            echo "db...";
             $stmt->execute([':id' => $id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
-            echo "done.\n";
 
             fwrite($repCreate, '<tr><td>' . $data['date'] . '</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
         }
