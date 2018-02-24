@@ -9,4 +9,6 @@ vendor/
 composer.phar
 .idea
 rqdata.dat
-/email.html
+email.html
+latesturls.txt
+.htaccess
