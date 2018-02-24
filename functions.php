@@ -78,7 +78,7 @@ function writeCreateData($requestData)
 {
     $repCreate = fopen('create.html', 'w');
 
-    fwrite($repCreate, '<table>');
+    fwrite($repCreate, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style><table>');
 
     global $database;
     $stmt = $database->prepare('SELECT name, date FROM request WHERE id = :id');
@@ -102,7 +102,7 @@ function writeSelfCreateData($requestData)
 {
     $repSelfcreate = fopen('selfcreate.html', 'w');
 
-    fwrite($repSelfcreate, '<table>');
+    fwrite($repSelfcreate, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style><table>');
 
     global $database;
     $stmt = $database->prepare('SELECT date, name FROM request WHERE id = :id');
