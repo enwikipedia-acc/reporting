@@ -14,7 +14,7 @@ function writeBlockData($requestData)
         foreach ($logs as $data) {
             if ($data['m'] === REJ_LOCALBLOCK) {
                 if (!isset($localBlocks[$data['d'][0]])) {
-                    $localBlocks[$data['d']] = [];
+                    $localBlocks[$data['d'][0]] = [];
                 }
 
                 $localBlocks[$data['d'][0]][] = [$id, $data['d'][1]];
@@ -24,14 +24,17 @@ function writeBlockData($requestData)
 
     $repBlocks = fopen('blocks.html', 'w');
 
-    fwrite($repBlocks, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style>');
+    fwrite($repBlocks, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; } td ul { margin-bottom: 0px; }</style>');
 
-    foreach ($localBlocks as $reason => $values) {
+    foreach ($localBlocks as $reason => $req) {
         fwrite($repBlocks, '<h3>' . htmlentities($reason) . '</h3><table>');
 
-        foreach ($values as $v) {
-            fwrite($repBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v[0] . '">' . $v[0] . '</a></td><td></td><td><ul>');
+        foreach ($req as $v) {
+            fwrite($repBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v[0] . '">' . $v[0] . '</a></td>');
 
+            fwrite($repBlocks, '<td>'.$v[1].'</td>');
+
+            fwrite($repBlocks, '<td><ul>');
             foreach ($requestData[$v[0]] as $logData) {
                 // skip the block information, we already know!
                 if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
@@ -40,8 +43,9 @@ function writeBlockData($requestData)
 
                 fwrite($repBlocks, '<li>' . $logData['m'] . '</li>');
             }
+            fwrite($repBlocks, '</ul></td>');
 
-            fwrite($repBlocks, '</ul></td></tr>');
+            fwrite($repBlocks, '</tr>');
         }
 
         fwrite($repBlocks, '</table>');
@@ -62,7 +66,11 @@ function writeLog($requestData)
         fwrite($repLog, '<li>Processing #' . $id . ' - ' . ++$i . ' / ' . $total . '<ul>');
         foreach ($logData as $datum) {
             if ($datum['d'] !== null) {
-                $fullMessage = $datum['m'] . ' - <code>' . htmlentities($datum['d']) . '</code>';
+                if (is_array($datum['d'])) {
+                    $fullMessage = $datum['m'] . ' - <code>' . htmlentities($datum['d'][0]) . '</code>';
+                } else {
+                    $fullMessage = $datum['m'] . ' - <code>' . htmlentities($datum['d']) . '</code>';
+                }
             } else {
                 $fullMessage = $datum['m'];
             }
@@ -87,9 +95,11 @@ function writeCreateData($requestData)
 
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
+            echo "db...";
             $stmt->execute([':id' => $id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
+            echo "done.\n";
 
             fwrite($repCreate, '<tr><td>' . $data['date'] . '</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
         }
