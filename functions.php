@@ -187,7 +187,7 @@ function writeBlacklistData($requestData)
     fclose($repBlacklist);
 }
 
-function writeEmailReport()
+function writeEmailReport($requestData)
 {
     global $database;
 
@@ -230,7 +230,13 @@ SQL
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
 
         foreach ($idList as $id) {
-            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a></li>');
+            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a><ul>');
+
+            foreach ($requestData[$id] as $logData) {
+                fwrite($repEmail, '<li>' . $logData['m'] . '</li>');
+            }
+
+            fwrite($repEmail, '</ul></li>');
         }
 
         fwrite($repEmail, '</ul>');

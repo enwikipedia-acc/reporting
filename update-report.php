@@ -42,6 +42,6 @@ writeCreateData($requestData);
 writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
-writeEmailReport();
+writeEmailReport($requestData);
 
 echo "Done.\n";

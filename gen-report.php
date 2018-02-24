@@ -316,7 +316,7 @@ writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeLog($requestData);
-writeEmailReport();
+writeEmailReport($requestData);
 
 file_put_contents('rqdata.dat', serialize($requestData));
 
