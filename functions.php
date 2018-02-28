@@ -234,13 +234,19 @@ SQL
     $groups = $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);
     $stmt->closeCursor();
 
+    $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
+
     $repEmail = fopen('email.html', 'w');
 
     foreach ($groups as $k => $idList) {
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
 
         foreach ($idList as $id) {
-            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a>');
+            $stmt->execute([':id' => $id]);
+            $name = $stmt->fetchColumn();
+            $stmt->closeCursor();
+
+            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> ' . $name);
 
             if (isset($requestData[$id])) {
                 fwrite($repEmail, '<ul>');
