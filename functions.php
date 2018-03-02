@@ -214,6 +214,7 @@ AND substring_index(email, '@', -1) NOT IN (
   , 'live.com'
   , 'att.net'
   , 'att.com'
+  , 'comcast.net'
   , 'blueyonder.co.uk'
   , 'earthlink.net'
   , 'rocketmail.com'
