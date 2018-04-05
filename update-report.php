@@ -13,6 +13,7 @@ require('functions.php');
 @unlink('log.html');
 @unlink('selfcreate.html');
 @unlink('email.html');
+@unlink('xff.html');
 
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -47,5 +48,6 @@ writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeEmailReport($requestData);
+writeXffReport($requestData);
 
 echo "Done.\n";

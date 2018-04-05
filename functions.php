@@ -5,6 +5,7 @@ const REJ_HASLOCALBLOCK = 'Rejected: Local blocks exist';
 const REJ_SELFCREATE = 'Rejected: self-create';
 const REJ_DQBLACKLIST = 'Rejected: DQ blacklist';
 const REJ_BLACKLIST = 'Rejected: title blacklist';
+const REJ_XFFPRESENT = 'Rejected: XFF data present';
 
 function writeBlockData($requestData)
 {
@@ -188,6 +189,32 @@ function writeBlacklistData($requestData)
                 $stmt->closeCursor();
 
                 fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
+            }
+        }
+    }
+
+    fwrite($repBlacklist, '</ul>');
+
+    fclose($repBlacklist);
+}
+
+function writeXffReport($requestData)
+{
+    $repBlacklist = fopen('xff.html', 'w');
+
+    fwrite($repBlacklist, '<ul>');
+
+    global $database;
+    $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
+
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_XFFPRESENT) {
+                $stmt->execute([':id' => $id]);
+                $req = $stmt->fetchColumn();
+                $stmt->closeCursor();
+
+                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ")</a></li>");
             }
         }
     }

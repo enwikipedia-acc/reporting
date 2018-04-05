@@ -297,7 +297,7 @@ foreach ($result as $req) {
         }
 
     } else {
-        l($id, 'Rejected: XFF data present');
+        l($id, REJ_XFFPRESENT);
         $substitutions[0] = '127.255.255.255'; // force this to nothing
         $enwikiGeneralResult = apiQuery(API_ENWIKI, $enwikiGeneralQuery, $substitutions);
         $create = false;
@@ -317,6 +317,7 @@ writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeLog($requestData);
 writeEmailReport($requestData);
+writeXffReport($requestData);
 
 file_put_contents('rqdata.dat', serialize($requestData));
 
