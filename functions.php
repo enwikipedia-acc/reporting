@@ -24,6 +24,8 @@ function writeBlockData($requestData)
         }
     }
 
+    ksort($localBlocks);
+
     $repBlocks = fopen('blocks.html', 'w');
 
     fwrite($repBlocks, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; } td ul { margin-bottom: 0px; }</style>');
