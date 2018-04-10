@@ -269,7 +269,7 @@ foreach ($result as $req) {
 
         // GLOBAL ACCOUNT
         if (!isset($metaQuery->query->globaluserinfo->missing)) {
-            l($id, 'Rejected: global account present');
+            l($id, REJ_SULPRESENT);
             $create = false;
         }
 

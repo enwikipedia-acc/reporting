@@ -6,6 +6,7 @@ const REJ_SELFCREATE = 'Rejected: self-create';
 const REJ_DQBLACKLIST = 'Rejected: DQ blacklist';
 const REJ_BLACKLIST = 'Rejected: title blacklist';
 const REJ_XFFPRESENT = 'Rejected: XFF data present';
+const REJ_SULPRESENT = 'Rejected: global account present';
 
 function writeBlockData($requestData)
 {
@@ -137,6 +138,16 @@ function writeSelfCreateData($requestData)
                 }
 
                 fwrite($repSelfcreate, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>");
+            }
+
+            if ($datum['m'] === REJ_SULPRESENT) {
+                $stmt->execute([':id' => $id]);
+                $req = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                $reason = 'Global account present';
+
+                fwrite($repSelfcreate, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>");
             }
         }
     }
