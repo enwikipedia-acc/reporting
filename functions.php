@@ -10,6 +10,8 @@ const REJ_SULPRESENT = 'Rejected: global account present';
 
 function writeBlockData($requestData)
 {
+    $idList = array();
+
     $localBlocks = [];
 
     foreach ($requestData as $id => $logs) {
@@ -35,6 +37,7 @@ function writeBlockData($requestData)
 
         foreach ($req as $v) {
             fwrite($repBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v[0] . '">' . $v[0] . '</a></td>');
+            $idList[] = $v[0];
 
             fwrite($repBlocks, '<td>'.$v[1].'</td>');
 
@@ -55,6 +58,7 @@ function writeBlockData($requestData)
         fwrite($repBlocks, '</table>');
     }
 
+    file_put_contents("blocks.js", json_encode($idList));
     fclose($repBlocks);
 }
 
@@ -90,6 +94,8 @@ function writeLog($requestData)
 
 function writeCreateData($requestData)
 {
+    $idList = array();
+
     $repCreate = fopen('create.html', 'w');
 
     fwrite($repCreate, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style><table>');
@@ -103,10 +109,12 @@ function writeCreateData($requestData)
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
+            $idList[] = $id;
             fwrite($repCreate, '<tr><td>' . $data['date'] . '</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
         }
     }
 
+    file_put_contents("create.js", json_encode($idList));
     fwrite($repCreate, '</table>');
 
     fclose($repCreate);
@@ -215,6 +223,8 @@ function writeXffReport($requestData)
 {
     $repBlacklist = fopen('xff.html', 'w');
 
+    $idList = array();
+
     fwrite($repBlacklist, '<ul>');
 
     global $database;
@@ -227,10 +237,13 @@ function writeXffReport($requestData)
                 $req = $stmt->fetchColumn();
                 $stmt->closeCursor();
 
+                $idList[] = $id;
                 fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ")</a></li>");
             }
         }
     }
+
+    file_put_contents("xff.js", json_encode($idList));
 
     fwrite($repBlacklist, '</ul>');
 
@@ -250,6 +263,7 @@ AND substring_index(email, '@', -1) NOT IN (
   , 'hotmail.com'
   , 'hotmail.co.uk'
   , 'outlook.com'
+  , 'live.co.uk'
   , 'icloud.com'
   , 'me.com'
   , 'aol.com'
