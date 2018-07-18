@@ -121,7 +121,7 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $resultCount = count($result);
 
 // {0} = Forwarded IP
-// {1} = 2017-10-01T00%3A00%3A00.000Z
+// {1} = 2017-10-01T00%3A00%3A00.000Z  (~ 3m from oldest; hardcoded)
 // {2} = Username
 
 $usernameBlacklistQuery = [
@@ -146,11 +146,14 @@ $enwikiGeneralQuery = [
 
     'letitle' => 'User:{0}',
     'letype' => 'block',
+    'lestart' => '{1}',
+    'ledir' => 'newer',
 
     'usprop' => 'registration',
     'ususers' => '{2}',
 
     'titles' => 'User talk:{0}|User:{2}',
+    'prop' => 'info',
 ];
 
 $metaGeneralQuery = [
@@ -182,7 +185,7 @@ foreach ($result as $req) {
 
     $substitutions = [
         0 => $req['forwardedip'],
-        1 => '2017-10-01T00:00:00.000Z',
+        1 => '2018-01-01T00:00:00.000Z',
         2 => $req['name'],
     ];
 
@@ -283,14 +286,16 @@ foreach ($result as $req) {
         foreach ($enwikiGeneralResult->query->pages as $pageId => $page) {
             if (substr($page->title, 0, strlen("User talk:")) == "User talk:") {
                 if (isset($page->pageid)) {
-                    l($id, 'Rejected: IP Talk page');
-                    $create = false;
+                    if ($page->touched > $substitutions[1]) {
+                        l($id, 'Rejected: IP Talk recently touched');
+                        $create = false;
+                    }
                 }
             }
 
             if (substr($page->title, 0, strlen("User:")) == "User:") {
                 if (isset($page->pageid)) {
-                    l($id, 'Rejected: User page');
+                    l($id, 'Rejected: User page exists');
                     $create = false;
                 }
             }

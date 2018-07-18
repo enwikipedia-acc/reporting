@@ -293,6 +293,7 @@ AND substring_index(email, '@', -1) NOT IN (
   , 'protonmail.com'
   , 'msn.com'
   , 'qq.com'
+  , 'btinternet.com'
 )
 ORDER BY 1 ASC
 SQL
