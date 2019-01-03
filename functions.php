@@ -1,12 +1,133 @@
 <?php
 
+require('config.php');
+
 const REJ_LOCALBLOCK = 'Rejected: Locally blocked';
+const REJ_HARDBLOCK = 'Rejected: HARD blocked';
 const REJ_HASLOCALBLOCK = 'Rejected: Local blocks exist';
 const REJ_SELFCREATE = 'Rejected: self-create';
 const REJ_DQBLACKLIST = 'Rejected: DQ blacklist';
 const REJ_BLACKLIST = 'Rejected: title blacklist';
 const REJ_XFFPRESENT = 'Rejected: XFF data present';
 const REJ_SULPRESENT = 'Rejected: global account present';
+
+const API_META = 'https://meta.wikimedia.org/w/api.php';
+const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
+
+$database = new PDO($dburl, $dbuser, $dbpass);
+$database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+$cookieJar = tempnam("/tmp", "CURLCOOKIE");
+$curlOpt = array(
+    CURLOPT_COOKIEFILE => $cookieJar,
+    CURLOPT_COOKIEJAR => $cookieJar,
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_USERAGENT => 'Wikipedia-Account-Creation-Tool/6.8 ReportScript/0.1 (+mailto:wikimedia@stwalkerster.co.uk)',
+);
+
+function apiQuery($base, array $params, array $substitutions, $post = false)
+{
+    global $curlOpt;
+
+    $usableParams = [];
+
+    foreach ($params as $k => $v) {
+        $val = $v;
+
+        foreach ($substitutions as $kid => $repl) {
+            $val = str_replace('{' . $kid . '}', $repl, $val);
+        }
+
+        $usableParams[$k] = $val;
+    }
+
+    $usableParams['format'] = 'json';
+
+    $queryString = http_build_query($usableParams);
+
+    $url = $base;
+
+    if (!$post) {
+        $url .= '?' . $queryString;
+    }
+
+    $ch = curl_init();
+    curl_setopt_array($ch, $curlOpt);
+    curl_setopt($ch, CURLOPT_URL, $url);
+
+    if ($post) {
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
+    }
+
+    $data = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        die('cURL Error: ' . curl_error($ch));
+    }
+
+    return json_decode($data);
+}
+
+function login()
+{
+    $tokenResult = apiQuery(API_ENWIKI, ['action' => 'query', 'meta' => 'tokens', 'type' => 'login'], ['', '', '']);
+
+    $logintoken = $tokenResult->query->tokens->logintoken;
+
+    global $wikiuser, $wikipass;
+
+    apiQuery(API_ENWIKI, [
+        'action' => 'login',
+        'lgname' => $wikiuser,
+        'lgpassword' => $wikipass,
+        'lgtoken' => $logintoken,
+    ], ['', '', ''], true);
+}
+
+
+function writeFileHeader($h, $reportName = '')
+{
+    if($reportName != '') {
+        $reportName = ' :: ' . $reportName;
+    }
+
+    fwrite($h, <<<HTML
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8" /><title>ACC Reporting$reportName</title><style type="text/css">
+    body
+    {
+        background-color: #2b2b2b;
+        color: #a9b7c6;
+        font-family: DejaVu Sans Mono, monospace;
+    }
+
+    table
+    {
+        border-collapse: collapse;
+    }
+
+    td {
+        border: 1px solid #a9b7c6;
+        padding: 3px;
+    }
+
+    td ul {
+        margin-bottom: 0px;
+        margin-block-start: 0px;
+    }
+
+    a {
+        color: #589df6;
+    }
+
+    a:visited {
+        color: #986df6;
+    }
+</style></head><body>
+HTML
+    );
+}
 
 function writeBlockData($requestData)
 {
@@ -17,11 +138,14 @@ function writeBlockData($requestData)
     foreach ($requestData as $id => $logs) {
         foreach ($logs as $data) {
             if ($data['m'] === REJ_LOCALBLOCK) {
+                // create empty array for this block as it doesn't exist yet
                 if (!isset($localBlocks[$data['d'][0]])) {
                     $localBlocks[$data['d'][0]] = [];
                 }
 
-                $localBlocks[$data['d'][0]][] = [$id, $data['d'][1]];
+                $sortValue = uniqid(ip2long(explode('/', $data['d'][1])[0]));
+
+                $localBlocks[$data['d'][0]][$sortValue] = [$id, $data['d'][1]];
             }
         }
     }
@@ -30,10 +154,11 @@ function writeBlockData($requestData)
 
     $repBlocks = fopen('blocks.html', 'w');
 
-    fwrite($repBlocks, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; } td ul { margin-bottom: 0px; }</style>');
+    writeFileHeader($repBlocks, 'Blocks');
 
     foreach ($localBlocks as $reason => $req) {
         fwrite($repBlocks, '<h3>' . htmlentities($reason) . '</h3><table>');
+        ksort($req);
 
         foreach ($req as $v) {
             fwrite($repBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $v[0] . '">' . $v[0] . '</a></td>');
@@ -48,7 +173,11 @@ function writeBlockData($requestData)
                     continue;
                 }
 
-                fwrite($repBlocks, '<li>' . $logData['m'] . '</li>');
+                if( $logData['m'] == REJ_HARDBLOCK ) {
+                    fwrite($repBlocks, '<li>' . $logData['m'] . ' (' . $logData['d'][1] . ')</li>');
+                } else {
+                    fwrite($repBlocks, '<li>' . $logData['m'] . '</li>');
+                }
             }
             fwrite($repBlocks, '</ul></td>');
 
@@ -68,6 +197,7 @@ function writeLog($requestData)
     $i = 0;
 
     $repLog = fopen('log.html', 'w');
+    writeFileHeader($repLog);
     fwrite($repLog, '<ul>');
 
     foreach ($requestData as $id => $logData) {
@@ -98,7 +228,8 @@ function writeCreateData($requestData)
 
     $repCreate = fopen('create.html', 'w');
 
-    fwrite($repCreate, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style><table>');
+    writeFileHeader($repCreate);
+    fwrite($repCreate, '<table>');
 
     global $database;
     $stmt = $database->prepare('SELECT name, date FROM request WHERE id = :id');
@@ -123,13 +254,16 @@ function writeCreateData($requestData)
 function writeSelfCreateData($requestData)
 {
     $repSelfcreate = fopen('selfcreate.html', 'w');
-
-    fwrite($repSelfcreate, '<style>table { border-collapse: collapse; } td {border: 1px solid black; padding: 3px; }</style><table>');
+    writeFileHeader($repSelfcreate, 'Self-creations');
+    fwrite($repSelfcreate, '<table>');
+    fwrite($repSelfcreate, '<tr><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
 
     global $database;
     $stmt = $database->prepare('SELECT date, name FROM request WHERE id = :id');
 
     foreach ($requestData as $id => $data) {
+        $scMessage = null;
+
         foreach ($data as $datum) {
             if ($datum['m'] === REJ_SELFCREATE) {
                 $stmt->execute([':id' => $id]);
@@ -147,18 +281,22 @@ function writeSelfCreateData($requestData)
                     $reason = 'Self-create';
                 }
 
-                fwrite($repSelfcreate, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>");
+                $scMessage = '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
 
-            if ($datum['m'] === REJ_SULPRESENT) {
+            if ($datum['m'] === REJ_SULPRESENT && $scMessage === null) {
                 $stmt->execute([':id' => $id]);
                 $req = $stmt->fetch(PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
 
                 $reason = 'Global account present';
 
-                fwrite($repSelfcreate, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>");
+                $scMessage = '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
+        }
+
+        if ($scMessage !== null) {
+            fwrite($repSelfcreate, $scMessage);
         }
     }
 
@@ -167,9 +305,45 @@ function writeSelfCreateData($requestData)
     fclose($repSelfcreate);
 }
 
+function writeHardblockData($requestData)
+{
+    $repHardblocks = fopen('hardblock.html', 'w');
+    writeFileHeader($repHardblocks, 'Hard blocks');
+    fwrite($repHardblocks, '<table>');
+    fwrite($repHardblocks, '<tr><th>Request</th><th>Log</th></tr>');
+
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_HARDBLOCK) {
+
+                fwrite($repHardblocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . "</a></td>");
+                fwrite($repHardblocks, '<td><ul>');
+                foreach ($data as $logData) {
+                    /*if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
+                        continue;
+                    }*/
+
+                    if( $logData['m'] == REJ_HARDBLOCK ) {
+                        fwrite($repHardblocks, '<li>' . $logData['m'] . ' (' . $logData['d'][1] . ')</li>');
+                    } else {
+                        fwrite($repHardblocks, '<li>' . $logData['m'] . '</li>');
+                    }
+                }
+                fwrite($repHardblocks, '</ul></td>');
+                fwrite($repHardblocks, '</tr>');
+            }
+        }
+    }
+
+    fwrite($repHardblocks, '</table>');
+
+    fclose($repHardblocks);
+}
+
 function writeDqBlacklistData($requestData)
 {
     $repDqBlacklist = fopen('dqblacklist.html', 'w');
+    writeFileHeader($repDqBlacklist);
 
     fwrite($repDqBlacklist, '<ul>');
 
@@ -196,7 +370,7 @@ function writeDqBlacklistData($requestData)
 function writeBlacklistData($requestData)
 {
     $repBlacklist = fopen('blacklist.html', 'w');
-
+    writeFileHeader($repBlacklist);
     fwrite($repBlacklist, '<ul>');
 
     global $database;
@@ -222,6 +396,7 @@ function writeBlacklistData($requestData)
 function writeXffReport($requestData)
 {
     $repBlacklist = fopen('xff.html', 'w');
+    writeFileHeader($repBlacklist);
 
     $idList = array();
 
@@ -250,12 +425,12 @@ function writeXffReport($requestData)
     fclose($repBlacklist);
 }
 
-function writeEmailReport($requestData)
+function writeEmailReport($requestData, $requestState)
 {
     global $database;
 
     $stmt = $database->query(<<<SQL
-SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0
+SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = '${requestState}' AND emailconfirm = 'Confirmed' AND reserved = 0
 AND substring_index(email, '@', -1) NOT IN (
     'gmail.com'
   , 'googlemail.com'
@@ -294,6 +469,13 @@ AND substring_index(email, '@', -1) NOT IN (
   , 'msn.com'
   , 'qq.com'
   , 'btinternet.com'
+  , 'telstra.com'
+  , 'sky.com'
+  , '163.com'
+  , 'rediffmail.com'
+  , 'bell.net'
+  , 'bellsouth.net'
+  , 'cox.net'
 )
 ORDER BY 1 ASC
 SQL
@@ -305,6 +487,7 @@ SQL
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
     $repEmail = fopen('email.html', 'w');
+    writeFileHeader($repEmail, 'Email domains');
 
     foreach ($groups as $k => $idList) {
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');

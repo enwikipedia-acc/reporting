@@ -1,85 +1,32 @@
+#!/usr/bin/env php
 <?php
 
 chdir(__DIR__);
 
 require('vendor/autoload.php');
-require('config.php');
 require('functions.php');
 $hpbl = new joshtronic\ProjectHoneyPot($honeypotKey);
 
-$database = new PDO($dburl, $dbuser, $dbpass);
-$database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$options = getopt('s:r:u');
 
-$cookieJar = tempnam("/tmp", "CURLCOOKIE");
-$curlOpt = array(
-    CURLOPT_COOKIEFILE => $cookieJar,
-    CURLOPT_COOKIEJAR => $cookieJar,
-    CURLOPT_RETURNTRANSFER => 1,
-    CURLOPT_USERAGENT => 'Wikipedia-Account-Creation-Tool/6.8 ReportScript/0.1 (+mailto:wikimedia@stwalkerster.co.uk)',
+$dbParam = [];
+$dbParam[':filterRequest'] = 0;
+$dbParam[':request'] = 0;
+$dbParam[':status'] = 'Open';
 
-);
+$requestData = [];
 
-const API_META = 'https://meta.wikimedia.org/w/api.php';
-const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
-
-function apiQuery($base, array $params, array $substitutions, $post = false)
-{
-    global $curlOpt;
-
-    $usableParams = [];
-
-    foreach ($params as $k => $v) {
-        $val = $v;
-
-        foreach ($substitutions as $kid => $repl) {
-            $val = str_replace('{' . $kid . '}', $repl, $val);
-        }
-
-        $usableParams[$k] = $val;
-    }
-
-    $usableParams['format'] = 'json';
-
-    $queryString = http_build_query($usableParams);
-
-    $url = $base;
-
-    if (!$post) {
-        $url .= '?' . $queryString;
-    }
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $curlOpt);
-    curl_setopt($ch, CURLOPT_URL, $url);
-
-    if ($post) {
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $queryString);
-    }
-
-    $data = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        die('cURL Error: ' . curl_error($ch));
-    }
-
-    return json_decode($data);
+if(isset($options['s'])) {
+    $dbParam[':status'] = $options['s'];
 }
 
-function login()
-{
-    $tokenResult = apiQuery(API_ENWIKI, ['action' => 'query', 'meta' => 'tokens', 'type' => 'login'], ['', '', '']);
+if (isset($options['r'])) {
+    $dbParam[':filterRequest'] = 1;
+    $dbParam[':request'] = $options['r'];
+}
 
-    $logintoken = $tokenResult->query->tokens->logintoken;
-
-    global $wikiuser, $wikipass;
-
-    apiQuery(API_ENWIKI, [
-        'action' => 'login',
-        'lgname' => $wikiuser,
-        'lgpassword' => $wikipass,
-        'lgtoken' => $logintoken,
-    ], ['', '', ''], true);
+if (isset($options['u'])) {
+    $requestData = unserialize(file_get_contents('rqdata.dat'));
 }
 
 function initialiseDeltaQuadBlacklist()
@@ -115,7 +62,8 @@ function l($request, $message, $data = null)
 
 login();
 
-$stmt = $database->query("SELECT id, name, forwardedip, date FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0");
+$stmt = $database->prepare("SELECT id, name, forwardedip, date FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved = 0 AND (:filterRequest = 0 OR :request = id)");
+$stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $resultCount = count($result);
@@ -171,8 +119,6 @@ $metaGeneralQuery = [
 
 $repLog = fopen('log.html', 'w');
 
-$requestData = [];
-
 $dqpatterns = initialiseDeltaQuadBlacklist();
 
 $i = 0;
@@ -185,7 +131,7 @@ foreach ($result as $req) {
 
     $substitutions = [
         0 => $req['forwardedip'],
-        1 => '2018-01-01T00:00:00.000Z',
+        1 => '2018-04-24T00:00:00.000Z',
         2 => $req['name'],
     ];
 
@@ -208,6 +154,15 @@ foreach ($result as $req) {
     $enwikiGeneralResult = apiQuery(API_ENWIKI, $enwikiGeneralQuery, $substitutions);
     $metaQuery = apiQuery(API_META, $metaGeneralQuery, $substitutions);
 
+    if (isset($enwikiGeneralResult->error)) {
+        l($id, 'ERROR: Encountered API error during call to enwiki - skipping remaining checks');
+        continue;
+    }
+
+    if (isset($metaQuery->error)) {
+        l($id, 'ERROR: Encountered API error during call to meta - skipping remaining checks');
+        continue;
+    }
 
     // FORWARDED IP STUFF
     if (!preg_match('/, /', $req['forwardedip'])) {
@@ -217,6 +172,10 @@ foreach ($result as $req) {
             l($id, REJ_HASLOCALBLOCK);
             $create = false;
             foreach ($enwikiGeneralResult->query->blocks as $b) {
+                if (!isset($b->anononly)) {
+                    l($id, REJ_HARDBLOCK, [$b->reason, $b->user]);
+                }
+
                 if (strpos($b->reason, 'evasion') === false) {
                     if (strpos($b->reason, '{{anonblock}}') !== false) {
                         continue;
@@ -270,12 +229,6 @@ foreach ($result as $req) {
             $create = false;
         }
 
-        // GLOBAL ACCOUNT
-        if (!isset($metaQuery->query->globaluserinfo->missing)) {
-            l($id, REJ_SULPRESENT);
-            $create = false;
-        }
-
         // PROJECT HONEYPOT
         if ($hpbl->query($req['forwardedip']) !== false) {
             l($id, 'Rejected: project honeypot');
@@ -301,6 +254,11 @@ foreach ($result as $req) {
             }
         }
 
+        // GLOBAL ACCOUNT
+        if (!isset($metaQuery->query->globaluserinfo->missing) && !isset($metaQuery->query->globaluserinfo->invalid)) {
+            l($id, REJ_SULPRESENT);
+            $create = false;
+        }
     } else {
         l($id, REJ_XFFPRESENT);
         $substitutions[0] = '127.255.255.255'; // force this to nothing
@@ -309,7 +267,7 @@ foreach ($result as $req) {
     }
 
     // SELF-CREATES
-    if (!isset($enwikiGeneralResult->query->users[0]->missing)) {
+    if (!isset($enwikiGeneralResult->query->users[0]->missing) && !isset($enwikiGeneralResult->query->users[0]->invalid)) {
         l($id, REJ_SELFCREATE, $enwikiGeneralResult->query->users[0]->registration);
         $create = false;
     }
@@ -321,8 +279,9 @@ writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeLog($requestData);
-writeEmailReport($requestData);
+writeEmailReport($requestData, $dbParam[':status']);
 writeXffReport($requestData);
+writeHardblockData($requestData);
 
 file_put_contents('rqdata.dat', serialize($requestData));
 
@@ -330,3 +289,4 @@ file_put_contents('rqdata.dat', serialize($requestData));
 unlink($cookieJar);
 
 echo "Done.\n";
+
