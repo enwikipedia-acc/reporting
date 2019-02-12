@@ -2,6 +2,7 @@
 
 require('config.php');
 
+const REJ_MULTIREQUEST = 'Rejected: Multiple requests detected from this IP/Email';
 const REJ_LOCALBLOCK = 'Rejected: Locally blocked';
 const REJ_HARDBLOCK = 'Rejected: HARD blocked';
 const REJ_HASLOCALBLOCK = 'Rejected: Local blocks exist';
@@ -248,10 +249,10 @@ function writeCreateData($requestData)
 
     writeFileHeader($repCreate);
     fwrite($repCreate, '<table>');
-    fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th></tr>');
+    fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th></tr>');
 
     global $database;
-    $stmt = $database->prepare('SELECT name, date FROM request WHERE id = :id');
+    $stmt = $database->prepare('SELECT name, date, email FROM request WHERE id = :id');
 
     $alternate = true;
     $lastDate = '';
@@ -274,6 +275,7 @@ function writeCreateData($requestData)
             fwrite($repCreate, '<td>' . $data['date'] . '</td>');
             fwrite($repCreate, '<td>' . $id . '</td>');
             fwrite($repCreate, '<td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
+            fwrite($repCreate, '<td>' . $data['email'] . '</td>');
             fwrite($repCreate, '</tr>');
         }
     }

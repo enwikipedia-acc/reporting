@@ -64,9 +64,11 @@ function l($request, $message, $data = null)
 
 login();
 
-$stmt = $database->prepare("SELECT id, name, forwardedip, date FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved = 0 AND (:filterRequest = 0 OR :request = id)");
+$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved = 0 AND (:filterRequest = 0 OR :request = id)");
 $stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$alternatesstmt = $database->prepare("SELECT COUNT(*) FROM request WHERE email = :email AND forwardedip LIKE CONCAT('%', :ip, '%') AND email <> 'acc@toolserver.org' AND ip <> '127.0.0.1'");
 
 $resultCount = count($result);
 
@@ -230,6 +232,16 @@ foreach ($result as $req) {
     }
 
     {
+        // MULTIPLE REQUESTS
+        $alternatesstmt->execute([ ':ip' => $req['forwardedip'], ':email' => $req['email'] ]);
+        $altresult = $alternatesstmt->fetchColumn();
+        $alternatesstmt->closeCursor();
+        if ($altresult > 1) {
+            l($id, REJ_MULTIREQUEST);
+            $create = false;
+        }
+
+
         // LOCAL BLOCKS
         if (count($enwikiGeneralResult->query->blocks) > 0) {
             l($id, REJ_HASLOCALBLOCK);
