@@ -295,7 +295,8 @@ function writeCreateData($requestData)
             fwrite($repCreate, '<td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
 
 
-            if (!in_array(explode("@", $data['email'][1]), getEmailDomainList())) {
+            $domainpart = explode("@", $data['email'])[1];
+            if (!in_array($domainpart, getEmailDomainList())) {
                 fwrite($repCreate, '<td>' . $data['email'] . '</td>');
             } else {
                 fwrite($repCreate, '<td></td>');
