@@ -361,7 +361,7 @@ foreach ($result as $req) {
 
         // GLOBAL RENAME - blocked wmfphab:T193671
         $pageresult = webRequest("https://meta.wikimedia.org/w/index.php?title=Special%3ALog&type=gblrename&oldname=" . urlencode($req['name']));
-        if (strpos($pageresult, 'No matching items in log.') !== false) {
+        if (strpos($pageresult, 'No matching items in log.') === false) {
             l($id, REJ_RENAMED);
             $create = false;
         }
