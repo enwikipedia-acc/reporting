@@ -11,6 +11,7 @@ const REJ_DQBLACKLIST = 'Rejected: DQ blacklist';
 const REJ_BLACKLIST = 'Rejected: title blacklist';
 const REJ_XFFPRESENT = 'Rejected: XFF data present';
 const REJ_SULPRESENT = 'Rejected: global account present';
+const REJ_RENAMED = 'Rejected: a user account was renamed from this name';
 
 const API_META = 'https://meta.wikimedia.org/w/api.php';
 const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
@@ -70,6 +71,23 @@ function apiQuery($base, array $params, array $substitutions, $post = false)
     }
 
     return json_decode($data);
+}
+
+function webRequest($url)
+{
+    global $curlOpt;
+
+    $ch = curl_init();
+    curl_setopt_array($ch, $curlOpt);
+    curl_setopt($ch, CURLOPT_URL, $url);
+
+    $data = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        die('cURL Error: ' . curl_error($ch));
+    }
+
+    return $data;
 }
 
 function login()
@@ -275,7 +293,14 @@ function writeCreateData($requestData)
             fwrite($repCreate, '<td>' . $data['date'] . '</td>');
             fwrite($repCreate, '<td>' . $id . '</td>');
             fwrite($repCreate, '<td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
-            fwrite($repCreate, '<td>' . $data['email'] . '</td>');
+
+
+            if (!in_array(explode("@", $data['email'][1]), getEmailDomainList())) {
+                fwrite($repCreate, '<td>' . $data['email'] . '</td>');
+            } else {
+                fwrite($repCreate, '<td></td>');
+            }
+
             fwrite($repCreate, '</tr>');
         }
     }
@@ -464,54 +489,10 @@ function writeEmailReport($requestData, $requestState)
 {
     global $database;
 
+    $emailDomainList = "'" . implode("','", getEmailDomainList()) . "'";
     $stmt = $database->query(<<<SQL
 SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = '${requestState}' AND emailconfirm = 'Confirmed' AND reserved = 0
-AND substring_index(email, '@', -1) NOT IN (
-    'gmail.com'
-  , 'googlemail.com'
-  , 'yahoo.com'
-  , 'hotmail.com'
-  , 'hotmail.co.uk'
-  , 'outlook.com'
-  , 'live.co.uk'
-  , 'icloud.com'
-  , 'me.com'
-  , 'aol.com'
-  , 'live.com'
-  , 'att.net'
-  , 'att.com'
-  , 'comcast.net'
-  , 'blueyonder.co.uk'
-  , 'earthlink.net'
-  , 'rocketmail.com'
-  , 'yahoo.co.uk'
-  , 'yahoo.in'
-  , 'yahoo.de'
-  , 'yahoo.com.ph'
-  , 'ymail.com'
-  , 'bigpond.net.au'
-  , 'bigpond.com'
-  , 'eastlink.ca'
-  , 'shaw.ca'
-  , 'gmx.com'
-  , 'gmx.co.uk'
-  , 'gmx.de'
-  , 'talktalk.net'
-  , 'virginmedia.com'
-  , 'mail.com'
-  , 'mailbox.org'
-  , 'protonmail.com'
-  , 'msn.com'
-  , 'qq.com'
-  , 'btinternet.com'
-  , 'telstra.com'
-  , 'sky.com'
-  , '163.com'
-  , 'rediffmail.com'
-  , 'bell.net'
-  , 'bellsouth.net'
-  , 'cox.net'
-)
+AND substring_index(email, '@', -1) NOT IN (${emailDomainList})
 ORDER BY 1 ASC
 SQL
     );
@@ -551,4 +532,53 @@ SQL
     }
 
     fclose($repEmail);
+}
+
+function getEmailDomainList() {
+    return [
+        'gmail.com'
+        , 'googlemail.com'
+        , 'yahoo.com'
+        , 'hotmail.com'
+        , 'hotmail.co.uk'
+        , 'outlook.com'
+        , 'live.co.uk'
+        , 'icloud.com'
+        , 'me.com'
+        , 'aol.com'
+        , 'live.com'
+        , 'att.net'
+        , 'att.com'
+        , 'comcast.net'
+        , 'blueyonder.co.uk'
+        , 'earthlink.net'
+        , 'rocketmail.com'
+        , 'yahoo.co.uk'
+        , 'yahoo.in'
+        , 'yahoo.de'
+        , 'yahoo.com.ph'
+        , 'ymail.com'
+        , 'bigpond.net.au'
+        , 'bigpond.com'
+        , 'eastlink.ca'
+        , 'shaw.ca'
+        , 'gmx.com'
+        , 'gmx.co.uk'
+        , 'gmx.de'
+        , 'talktalk.net'
+        , 'virginmedia.com'
+        , 'mail.com'
+        , 'mailbox.org'
+        , 'protonmail.com'
+        , 'msn.com'
+        , 'qq.com'
+        , 'btinternet.com'
+        , 'telstra.com'
+        , 'sky.com'
+        , '163.com'
+        , 'rediffmail.com'
+        , 'bell.net'
+        , 'bellsouth.net'
+        , 'cox.net'
+    ];
 }

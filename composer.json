@@ -1,5 +1,8 @@
 {
-    "require": {
-        "joshtronic/php-projecthoneypot": "dev-master"
-    }
+  "require": {
+    "joshtronic/php-projecthoneypot": "dev-master",
+    "ext-pdo": "*",
+    "ext-json": "*",
+    "ext-curl": "*"
+  }
 }
