@@ -84,7 +84,7 @@ $usernameBlacklistQuery = [
 
 $enwikiGeneralQuery = [
     'action' => 'query',
-    'list' => 'blocks|abuselog|usercontribs|logevents|users',
+    'list' => 'blocks|abuselog|usercontribs|logevents|users|alldeletedrevisions',
 
     'bkip' => '{0}',
 
@@ -103,6 +103,13 @@ $enwikiGeneralQuery = [
 
     'usprop' => 'registration',
     'ususers' => '{2}',
+
+    // /w/api.php?action=query&format=json&list=alldeletedrevisions&adrprop=timestamp&adrlimit=1&adruser=Stwalkerster&adrdir=older
+    'adrprop' => 'timestamp',
+    'adrlimit' => 1,
+    'adruser' => '{0}',
+    'adrstart' => '{1}',
+    'adrdir' => 'newer',
 
     'titles' => 'User talk:{0}|User:{2}',
     'prop' => 'info',
@@ -321,8 +328,11 @@ foreach ($result as $req) {
             $create = false;
         }
 
-        // XTOOLS / DELETED CONTRIBS
-        
+        // DELETED CONTRIBS
+        if (count($enwikiGeneralResult->query->alldeletedrevisions) > 0) {
+            l($id, 'Rejected: Has local deleted contribs', count($enwikiGeneralResult->query->alldeletedrevisions));
+            $create = false;
+        }
 
         // PAGE EXISTENCE
         foreach ($enwikiGeneralResult->query->pages as $pageId => $page) {
@@ -350,7 +360,6 @@ foreach ($result as $req) {
         }
 
         // GLOBAL RENAME - blocked wmfphab:T193671
-        // https://meta.wikimedia.org/w/index.php?title=Special%3ALog&type=gblrename&oldname=
         $pageresult = webRequest("https://meta.wikimedia.org/w/index.php?title=Special%3ALog&type=gblrename&oldname=" . urlencode($req['name']));
         if (strpos($pageresult, 'No matching items in log.') !== false) {
             l($id, REJ_RENAMED);
