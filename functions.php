@@ -13,6 +13,8 @@ const REJ_SULPRESENT = 'Rejected: global account present';
 
 const API_META = 'https://meta.wikimedia.org/w/api.php';
 const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
+const API_STOPFORUMSPAM = 'https://api.stopforumspam.org/api';
+const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wikipedia/';
 
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -85,6 +87,17 @@ function login()
     ], ['', '', ''], true);
 }
 
+function cidr($ip, $cidr)
+{
+    list($subnet, $mask) = explode('/', $cidr);
+
+    if ((ip2long($ip) & ~((1 << (32 - $mask)) - 1) ) == ip2long($subnet))
+    { 
+        return true;
+    }
+
+    return false;
+}
 
 function writeFileHeader($h, $reportName = '')
 {
@@ -105,6 +118,11 @@ function writeFileHeader($h, $reportName = '')
     table
     {
         border-collapse: collapse;
+    }
+
+    tr.row-alternate
+    {
+        background-color: #404040;
     }
 
     td {
@@ -230,9 +248,13 @@ function writeCreateData($requestData)
 
     writeFileHeader($repCreate);
     fwrite($repCreate, '<table>');
+    fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th></tr>');
 
     global $database;
     $stmt = $database->prepare('SELECT name, date FROM request WHERE id = :id');
+
+    $alternate = true;
+    $lastDate = '';
 
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
@@ -240,8 +262,19 @@ function writeCreateData($requestData)
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
+            // row alternate colours
+            $dateFlag = explode(' ', $data['date']);
+            if($lastDate != $dateFlag[0]) { 
+                $alternate = !$alternate;
+            }
+            $lastDate = $dateFlag[0];
+
             $idList[] = $id;
-            fwrite($repCreate, '<tr><td>' . $data['date'] . '</td><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . "</a></td></tr>");
+            fwrite($repCreate, '<tr' . ($alternate ? ' class="row-alternate"' : '') . '>');
+            fwrite($repCreate, '<td>' . $data['date'] . '</td>');
+            fwrite($repCreate, '<td>' . $id . '</td>');
+            fwrite($repCreate, '<td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
+            fwrite($repCreate, '</tr>');
         }
     }
 
