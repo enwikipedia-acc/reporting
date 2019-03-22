@@ -68,7 +68,7 @@ $stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM reque
 $stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$alternatesstmt = $database->prepare("SELECT COUNT(*) FROM request WHERE email = :email AND forwardedip LIKE CONCAT('%', :ip, '%') AND email <> 'acc@toolserver.org' AND ip <> '127.0.0.1'");
+$alternatesstmt = $database->prepare("SELECT COUNT(*) FROM request WHERE (email = :email OR forwardedip LIKE CONCAT('%', :ip, '%')) AND email <> 'acc@toolserver.org' AND ip <> '127.0.0.1'");
 
 $resultCount = count($result);
 
