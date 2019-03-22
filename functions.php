@@ -267,10 +267,10 @@ function writeCreateData($requestData)
 
     writeFileHeader($repCreate);
     fwrite($repCreate, '<table>');
-    fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th></tr>');
+    fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
 
     global $database;
-    $stmt = $database->prepare('SELECT name, date, email FROM request WHERE id = :id');
+    $stmt = $database->prepare('SELECT name, date, email, comment FROM request WHERE id = :id');
 
     $alternate = true;
     $lastDate = '';
@@ -290,16 +290,23 @@ function writeCreateData($requestData)
 
             $idList[] = $id;
             fwrite($repCreate, '<tr' . ($alternate ? ' class="row-alternate"' : '') . '>');
-            fwrite($repCreate, '<td>' . $data['date'] . '</td>');
-            fwrite($repCreate, '<td>' . $id . '</td>');
-            fwrite($repCreate, '<td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
+            fwrite($repCreate, '<td style="white-space: nowrap;">' . $data['date'] . '</td>');
+            fwrite($repCreate, '<td style="white-space: nowrap;">' . $id . '</td>');
+            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
 
-
-            $domainpart = explode("@", $data['email'])[1];
+            $domainpart = strtolower(explode("@", $data['email'])[1]);
             if (!in_array($domainpart, getEmailDomainList())) {
-                fwrite($repCreate, '<td>' . $data['email'] . '</td>');
+                fwrite($repCreate, '<td style="white-space: nowrap;">' . $data['email'] . '</td>');
             } else {
                 fwrite($repCreate, '<td></td>');
+            }
+
+
+            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/redir.php?tool=google&data=' . urlencode($data['name']) . '">Search</a></td>');
+            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=reserve&resid=' . $id . '">Reserve</a></td>');
+
+            if ($data['comment'] !== '') {
+                fwrite($repCreate, '<td style="background-color:midnightblue; mso-data-placement:same-cell; white-space:pre; font-family:monospace;overflow: auto; mso-data-placement:same-cell;">' . $data['comment'] . '</td>');
             }
 
             fwrite($repCreate, '</tr>');
@@ -581,5 +588,15 @@ function getEmailDomainList() {
         , 'bell.net'
         , 'bellsouth.net'
         , 'cox.net'
+        , 'yahoo.co.id'
+        , 'hotmail.co.nz'
+        , 'tampabay.rr.com'
+        , 'yahoo.co.in'
+        , 'hotmail.co.in'
+        , 'free.fr'
+        , 'hotmail.ca'
+        , 'aol.co.uk'
+        , 'outlook.de'
+        , 'charter.net'
     ];
 }
