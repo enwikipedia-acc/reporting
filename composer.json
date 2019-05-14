@@ -1,8 +1,15 @@
 {
+  "repositories":[
+    {
+        "type": "vcs",
+        "url": "git@github.com:wesbos/burner-email-providers.git"
+    }
+  ],
   "require": {
     "joshtronic/php-projecthoneypot": "dev-master",
     "ext-pdo": "*",
     "ext-json": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "wesbos/burner-email-providers": "@dev"
   }
 }

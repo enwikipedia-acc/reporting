@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "ed6d66021e868ac73c128863fe113526",
+    "content-hash": "25caa677e4e23fd8b3509290d769f7d3",
     "packages": [
         {
             "name": "joshtronic/php-projecthoneypot",
@@ -51,16 +51,59 @@
                 "spammer"
             ],
             "time": "2015-06-24T03:00:05+00:00"
+        },
+        {
+            "name": "wesbos/burner-email-providers",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wesbos/burner-email-providers.git",
+                "reference": "3df5c66101badb46f5c6c9d1b5c9de175c8a4b08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/wesbos/burner-email-providers/zipball/3df5c66101badb46f5c6c9d1b5c9de175c8a4b08",
+                "reference": "3df5c66101badb46f5c6c9d1b5c9de175c8a4b08",
+                "shasum": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "Wes Bos & contributors"
+                }
+            ],
+            "description": "A list of burner email providers.",
+            "keywords": [
+                "email"
+            ],
+            "support": {
+                "source": "https://github.com/wesbos/burner-email-providers",
+                "issues": "https://github.com/wesbos/burner-email-providers/issues"
+            },
+            "time": "2019-05-14T08:30:27+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "joshtronic/php-projecthoneypot": 20
+        "joshtronic/php-projecthoneypot": 20,
+        "wesbos/burner-email-providers": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-curl": "*"
+    },
     "platform-dev": []
 }

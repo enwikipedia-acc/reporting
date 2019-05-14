@@ -21,7 +21,7 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$cookieJar = tempnam("/tmp", "CURLCOOKIE");
+$cookieJar = "/home/stwalkerster/CURLCOOKIE";
 $curlOpt = array(
     CURLOPT_COOKIEFILE => $cookieJar,
     CURLOPT_COOKIEJAR => $cookieJar,
@@ -324,7 +324,7 @@ function writeSelfCreateData($requestData)
     $repSelfcreate = fopen('selfcreate.html', 'w');
     writeFileHeader($repSelfcreate, 'Self-creations');
     fwrite($repSelfcreate, '<table>');
-    fwrite($repSelfcreate, '<tr><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
+    fwrite($repSelfcreate, '<tr><th>#</th><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
 
     global $database;
     $stmt = $database->prepare('SELECT date, name FROM request WHERE id = :id');
@@ -349,7 +349,7 @@ function writeSelfCreateData($requestData)
                     $reason = 'Self-create';
                 }
 
-                $scMessage = '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
+                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
 
             if ($datum['m'] === REJ_SULPRESENT && $scMessage === null) {
@@ -359,7 +359,7 @@ function writeSelfCreateData($requestData)
 
                 $reason = 'Global account present';
 
-                $scMessage = '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
+                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
         }
 

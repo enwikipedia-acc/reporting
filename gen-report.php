@@ -367,6 +367,14 @@ foreach ($result as $req) {
         }
     }
 
+    if ($i % 100 == 0) {
+        writeBlockData($requestData);
+        writeCreateData($requestData);
+        writeSelfCreateData($requestData);
+        writeXffReport($requestData);
+        writeHardblockData($requestData);
+    }
+
 }
 
 writeBlockData($requestData);
