@@ -264,10 +264,15 @@ function writeCreateData($requestData)
     $idList = array();
 
     $repCreate = fopen('create.html', 'w');
+    $repCreateAuto = fopen('create-auto.html', 'w');
+    $repCreateAutoDat = fopen('create-auto.dat', 'w');
 
     writeFileHeader($repCreate);
+    writeFileHeader($repCreateAuto);
     fwrite($repCreate, '<table>');
     fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
+    fwrite($repCreateAuto, '<table>');
+    fwrite($repCreateAuto, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
 
     global $database;
     $stmt = $database->prepare('SELECT name, date, email, comment FROM request WHERE id = :id');
@@ -277,6 +282,9 @@ function writeCreateData($requestData)
 
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
+            $autocreate = true;
+            $lineOutput = '';
+
             $stmt->execute([':id' => $id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
@@ -289,34 +297,46 @@ function writeCreateData($requestData)
             $lastDate = $dateFlag[0];
 
             $idList[] = $id;
-            fwrite($repCreate, '<tr' . ($alternate ? ' class="row-alternate"' : '') . '>');
-            fwrite($repCreate, '<td style="white-space: nowrap;">' . $data['date'] . '</td>');
-            fwrite($repCreate, '<td style="white-space: nowrap;">' . $id . '</td>');
-            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
+            $lineOutput .= ('<tr' . ($alternate ? ' class="row-alternate"' : '') . '>');
+            $lineOutput .= ('<td style="white-space: nowrap;">' . $data['date'] . '</td>');
+            $lineOutput .= ('<td style="white-space: nowrap;">' . $id . '</td>');
+            $lineOutput .= ('<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $data['name'] . '</a></td>');
 
             $domainpart = strtolower(explode("@", $data['email'])[1]);
             if (!in_array($domainpart, getEmailDomainList())) {
-                fwrite($repCreate, '<td style="white-space: nowrap;">' . $data['email'] . '</td>');
+                $lineOutput .= ('<td style="white-space: nowrap;">' . $data['email'] . '</td>');
+                $autocreate = false;
             } else {
-                fwrite($repCreate, '<td></td>');
+                $lineOutput .= ('<td></td>');
             }
 
 
-            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/redir.php?tool=google&data=' . urlencode($data['name']) . '">Search</a></td>');
-            fwrite($repCreate, '<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=reserve&resid=' . $id . '">Reserve</a></td>');
+            $lineOutput .= ('<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/redir.php?tool=google&data=' . urlencode($data['name']) . '">Search</a></td>');
+            $lineOutput .= ('<td style="white-space: nowrap;"><a href="https://accounts.wmflabs.org/acc.php?action=reserve&resid=' . $id . '">Reserve</a></td>');
 
             if ($data['comment'] !== '') {
-                fwrite($repCreate, '<td style="background-color:midnightblue; mso-data-placement:same-cell; white-space:pre; font-family:monospace;overflow: auto; mso-data-placement:same-cell;">' . $data['comment'] . '</td>');
+                $autocreate = false;
+                $lineOutput .= ('<td style="background-color:midnightblue; mso-data-placement:same-cell; white-space:pre; font-family:monospace;overflow: auto; mso-data-placement:same-cell;">' . $data['comment'] . '</td>');
             }
 
-            fwrite($repCreate, '</tr>');
+            $lineOutput .= ('</tr>');
+
+            fwrite($repCreate, $lineOutput);
+
+            if($autocreate) {
+                fwrite($repCreateAuto, $lineOutput);
+                fwrite($repCreateAutoDat, $id);
+            }
         }
     }
 
     file_put_contents("create.js", json_encode($idList));
     fwrite($repCreate, '</table>');
+    fwrite($repCreateAuto, '</table>');
 
     fclose($repCreate);
+    fclose($repCreateAuto);
+    fclose($repCreateAutoDat);
 }
 
 function writeSelfCreateData($requestData)
