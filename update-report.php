@@ -11,6 +11,7 @@ require('functions.php');
 @unlink('dqblacklist.html');
 @unlink('log.html');
 @unlink('selfcreate.html');
+@unlink('selfcreate.sql');
 @unlink('email.html');
 @unlink('email-disposable.html');
 @unlink('xff.html');

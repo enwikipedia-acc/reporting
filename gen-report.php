@@ -355,7 +355,7 @@ foreach ($result as $req) {
 
         // GLOBAL ACCOUNT
         if (!isset($metaQuery->query->globaluserinfo->missing) && !isset($metaQuery->query->globaluserinfo->invalid)) {
-            l($id, REJ_SULPRESENT);
+            l($id, REJ_SULPRESENT, [$metaQuery->query->globaluserinfo->registration, $metaQuery->query->globaluserinfo->home]);
             $create = false;
         }
 

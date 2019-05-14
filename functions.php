@@ -322,6 +322,7 @@ function writeCreateData($requestData)
 function writeSelfCreateData($requestData)
 {
     $repSelfcreate = fopen('selfcreate.html', 'w');
+    $sqlSelfcreate = fopen('selfcreate.sql', 'w');
     writeFileHeader($repSelfcreate, 'Self-creations');
     fwrite($repSelfcreate, '<table>');
     fwrite($repSelfcreate, '<tr><th>#</th><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
@@ -347,6 +348,10 @@ function writeSelfCreateData($requestData)
 
                 if ($reqDate < $regDate) {
                     $reason = 'Self-create';
+
+                    fwrite($sqlSelfcreate, "INSERT INTO comment (time, user, comment, visibility, request) VALUES (current_timestamp(), 7, 'self-create', 'user', ${id});\n");
+                    fwrite($sqlSelfcreate, "UPDATE request SET status = 'Closed', reserved = 0 WHERE id = ${id};\n");
+                    fwrite($sqlSelfcreate, "INSERT INTO log (objectid, objecttype, user, action, timestamp) VALUES (${id}, 'Request', 7, 'Closed 0', current_timestamp());\n");
                 }
 
                 $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
@@ -357,7 +362,23 @@ function writeSelfCreateData($requestData)
                 $req = $stmt->fetch(PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
 
-                $reason = 'Global account present';
+	            $reqDate = new DateTime($req['date']);
+
+	            $regDate = new DateTime($datum['d'][0]);
+	            $homeWiki = $datum['d'][1];
+
+	            $reason = 'Unknown';
+	            if ($regDate < $reqDate) {
+		            $reason = 'Taken: Global account already present';
+	            }
+
+	            if ($reqDate < $regDate) {
+		            $reason = 'Self-create on ' . $homeWiki;
+
+		            fwrite($sqlSelfcreate, "INSERT INTO comment (time, user, comment, visibility, request) VALUES (current_timestamp(), 7, 'Self-create on ${homeWiki}', 'user', ${id});\n");
+		            fwrite($sqlSelfcreate, "UPDATE request SET status = 'Closed', reserved = 0 WHERE id = ${id};\n");
+		            fwrite($sqlSelfcreate, "INSERT INTO log (objectid, objecttype, user, action, timestamp) VALUES (${id}, 'Request', 7, 'Closed 0', current_timestamp());\n");
+	            }
 
                 $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
@@ -371,6 +392,7 @@ function writeSelfCreateData($requestData)
     fwrite($repSelfcreate, '</table>');
 
     fclose($repSelfcreate);
+    fclose($sqlSelfcreate);
 }
 
 function writeHardblockData($requestData)
