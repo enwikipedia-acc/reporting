@@ -496,8 +496,9 @@ function writeXffReport($requestData)
 function writeEmailReport($requestData, $requestState)
 {
     global $database;
+	$disposable = file('vendor/wesbos/burner-email-providers/emails.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-    $emailDomainList = "'" . implode("','", getEmailDomainList()) . "'";
+	$emailDomainList = "'" . implode("','", getEmailDomainList()) . "'";
     $stmt = $database->query(<<<SQL
 SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = '${requestState}' AND emailconfirm = 'Confirmed' AND reserved = 0
 AND substring_index(email, '@', -1) NOT IN (${emailDomainList})
@@ -511,10 +512,18 @@ SQL
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
     $repEmail = fopen('email.html', 'w');
+    $repDispEmail = fopen('email-disposable.html', 'w');
     writeFileHeader($repEmail, 'Email domains');
+    writeFileHeader($repDispEmail, 'Disposable email addresses');
+    fwrite($repDispEmail, '<ul>');
 
     foreach ($groups as $k => $idList) {
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
+
+	    $isDisposable = false;
+        if (in_array($k, $disposable)) {
+        	$isDisposable = true;
+        }
 
         foreach ($idList as $id) {
             $stmt->execute([':id' => $id]);
@@ -522,6 +531,9 @@ SQL
             $stmt->closeCursor();
 
             fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> ' . $name);
+            if($isDisposable) {
+	            fwrite( $repDispEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> (' . $k . ') - ' . $name . '</li>');
+            }
 
             if (isset($requestData[$id])) {
                 fwrite($repEmail, '<ul>');
@@ -537,9 +549,11 @@ SQL
         }
 
         fwrite($repEmail, '</ul>');
+        fwrite($repDispEmail, '</ul>');
     }
 
     fclose($repEmail);
+    fclose($repDispEmail);
 }
 
 function getEmailDomainList() {

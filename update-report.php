@@ -12,6 +12,7 @@ require('functions.php');
 @unlink('log.html');
 @unlink('selfcreate.html');
 @unlink('email.html');
+@unlink('email-disposable.html');
 @unlink('xff.html');
 
 $stmt = $database->query("SELECT id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0");
