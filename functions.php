@@ -264,6 +264,7 @@ function writeCreateData($requestData)
     $idList = array();
 
     $repCreate = fopen('create.html', 'w');
+    $repCreateDat = fopen('create.sql', 'w');
     $repCreateAuto = fopen('create-auto.html', 'w');
     $repCreateAutoDat = fopen('create-auto.sql', 'w');
 
@@ -278,6 +279,7 @@ function writeCreateData($requestData)
     $stmt = $database->prepare('SELECT name, date, email, comment FROM request WHERE id = :id');
 
     $alternate = true;
+    $alternateSwitched = false;
     $lastDate = '';
 
     foreach ($requestData as $id => $data) {
@@ -293,6 +295,7 @@ function writeCreateData($requestData)
             $dateFlag = explode(' ', $data['date']);
             if($lastDate != $dateFlag[0]) { 
                 $alternate = !$alternate;
+                $alternateSwitched = true;
             }
             $lastDate = $dateFlag[0];
 
@@ -321,13 +324,21 @@ function writeCreateData($requestData)
 
             $lineOutput .= ('</tr>');
 
+            if($alternateSwitched) {
+                fwrite($repCreateDat, '-- '.$data['date']."\n");
+                fwrite($repCreateAutoDat, '-- '.$data['date']."\n");
+            }
+
             fwrite($repCreate, $lineOutput);
+            fwrite($repCreateDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
 
             if($autocreate) {
                 fwrite($repCreateAuto, $lineOutput);
                 fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
             }
         }
+
+        $alternateSwitched = false;
     }
 
     file_put_contents("create.js", json_encode($idList));
@@ -335,6 +346,7 @@ function writeCreateData($requestData)
     fwrite($repCreateAuto, '</table>');
 
     fclose($repCreate);
+    fclose($repCreateDat);
     fclose($repCreateAuto);
     fclose($repCreateAutoDat);
 }
