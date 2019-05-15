@@ -265,7 +265,7 @@ function writeCreateData($requestData)
 
     $repCreate = fopen('create.html', 'w');
     $repCreateAuto = fopen('create-auto.html', 'w');
-    $repCreateAutoDat = fopen('create-auto.dat', 'w');
+    $repCreateAutoDat = fopen('create-auto.sql', 'w');
 
     writeFileHeader($repCreate);
     writeFileHeader($repCreateAuto);
@@ -325,7 +325,7 @@ function writeCreateData($requestData)
 
             if($autocreate) {
                 fwrite($repCreateAuto, $lineOutput);
-                fwrite($repCreateAutoDat, $id);
+                fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\Background\\Task\\RemoteCreationTask\', 1, 5, \'{"requestid" : '.$id.'}\');\n');
             }
         }
     }
