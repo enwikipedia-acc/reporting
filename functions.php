@@ -325,7 +325,7 @@ function writeCreateData($requestData)
 
             if($autocreate) {
                 fwrite($repCreateAuto, $lineOutput);
-                fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\Background\\Task\\RemoteCreationTask\', 1, 5, \'{"requestid" : '.$id.'}\');\n');
+                fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\Background\\Task\\RemoteCreationTask\', 1, 5, \'{"requestid" : '.$id.'}\');'."\n");
             }
         }
     }
