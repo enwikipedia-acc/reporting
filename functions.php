@@ -329,12 +329,12 @@ function writeCreateData($requestData)
                 fwrite($repCreateAutoDat, '-- '.$data['date']."\n");
             }
 
-            fwrite($repCreate, $lineOutput);
-            fwrite($repCreateDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
-
             if($autocreate) {
                 fwrite($repCreateAuto, $lineOutput);
                 fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
+            } else {
+                fwrite($repCreate, $lineOutput);
+                fwrite($repCreateDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
             }
         }
 
