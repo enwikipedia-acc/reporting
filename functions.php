@@ -267,13 +267,18 @@ function writeCreateData($requestData)
     $repCreateDat = fopen('create.sql', 'w');
     $repCreateAuto = fopen('create-auto.html', 'w');
     $repCreateAutoDat = fopen('create-auto.sql', 'w');
+    $repCreateEmail = fopen('create-email.html', 'w');
+    $repCreateEmailDat = fopen('create-email.sql', 'w');
 
     writeFileHeader($repCreate);
     writeFileHeader($repCreateAuto);
+    writeFileHeader($repCreateEmail);
     fwrite($repCreate, '<table>');
     fwrite($repCreate, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
     fwrite($repCreateAuto, '<table>');
     fwrite($repCreateAuto, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
+    fwrite($repCreateEmail, '<table>');
+    fwrite($repCreateEmail, '<tr><th>Request date</th><th>ID</th><th>Name</th><th>Email</th><th>Search</th><th>Reserve</th><th>comment</th></tr>');
 
     global $database;
     $stmt = $database->prepare('SELECT name, date, email, comment FROM request WHERE id = :id');
@@ -285,6 +290,8 @@ function writeCreateData($requestData)
     foreach ($requestData as $id => $data) {
         if (count($data) === 0) {
             $autocreate = true;
+            $emailcreate = false;
+
             $lineOutput = '';
 
             $stmt->execute([':id' => $id]);
@@ -309,6 +316,7 @@ function writeCreateData($requestData)
             if (!in_array($domainpart, getEmailDomainList())) {
                 $lineOutput .= ('<td style="white-space: nowrap;">' . $data['email'] . '</td>');
                 $autocreate = false;
+                $emailcreate = true;
             } else {
                 $lineOutput .= ('<td></td>');
             }
@@ -327,11 +335,15 @@ function writeCreateData($requestData)
             if($alternateSwitched) {
                 fwrite($repCreateDat, '-- '.$data['date']."\n");
                 fwrite($repCreateAutoDat, '-- '.$data['date']."\n");
+                fwrite($repCreateEmailDat, '-- '.$data['date']."\n");
             }
 
             if($autocreate) {
                 fwrite($repCreateAuto, $lineOutput);
                 fwrite($repCreateAutoDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
+            } else if($emailcreate) {
+                fwrite($repCreateEmail, $lineOutput);
+                fwrite($repCreateEmailDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
             } else {
                 fwrite($repCreate, $lineOutput);
                 fwrite($repCreateDat, 'INSERT INTO jobqueue (task, user, request, parameters) VALUES (\'Waca\\\\Background\\\\Task\\\\RemoteCreationTask\', 1, 1, \'{"requestid" : '.$id.'}\');'."\n");
@@ -349,6 +361,8 @@ function writeCreateData($requestData)
     fclose($repCreateDat);
     fclose($repCreateAuto);
     fclose($repCreateAutoDat);
+    fclose($repCreateEmail);
+    fclose($repCreateEmailDat);
 }
 
 function writeSelfCreateData($requestData)
