@@ -21,7 +21,7 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$cookieJar = "/home/stwalkerster/CURLCOOKIE";
+$cookieJar = "/home/" . $_SERVER['USER'] . "/CURLCOOKIE";
 $curlOpt = array(
     CURLOPT_COOKIEFILE => $cookieJar,
     CURLOPT_COOKIEJAR => $cookieJar,
