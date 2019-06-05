@@ -62,6 +62,8 @@ function l($request, $message, $data = null)
     echo "  " . $message . "\n";
 }
 
+$notifications_statement->execute([':text' => 'Report is being run by ' . $_SERVER['USER'] . ' for section ' . $dbParam[':status']]);
+
 login();
 
 $stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved = 0 AND (:filterRequest = 0 OR :request = id)");
