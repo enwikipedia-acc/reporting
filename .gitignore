@@ -5,11 +5,15 @@ create.html
 create.sql
 create-auto.html
 create-auto.sql
+create-email.html
+create-email.sql
 dqblacklist.html
 log.html
 selfcreate.html
 selfcreate.sql
 vendor/
+checkuser/
+proxy/
 composer.phar
 .idea
 rqdata.dat

@@ -12,7 +12,7 @@ $options = getopt('s:r:u');
 $dbParam = [];
 $dbParam[':filterRequest'] = 0;
 $dbParam[':request'] = 0;
-$dbParam[':status'] = 'Open';
+$dbParam[':status'] = $targetSection;
 
 $updateMode = false;
 $requestData = [];

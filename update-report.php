@@ -16,7 +16,7 @@ require('functions.php');
 @unlink('email-disposable.html');
 @unlink('xff.html');
 
-$stmt = $database->query("SELECT id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0");
+$stmt = $database->query("SELECT id FROM request WHERE status = '" . $targetSection . "' AND emailconfirm = 'Confirmed' AND reserved = 0");
 $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $stmt->closeCursor();
 
@@ -49,7 +49,7 @@ writeCreateData($requestData);
 writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
-writeEmailReport($requestData, 'Open');
+writeEmailReport($requestData, $targetSection);
 writeXffReport($requestData);
 writeHardblockData($requestData);
 
