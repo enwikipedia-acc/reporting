@@ -22,9 +22,9 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-//$notifdatabase = new PDO($notifications_url, $notifications_username, $notifications_password);
-//$notifdatabase->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-//$notifications_statement = $notifdatabase->prepare("INSERT INTO notification ( type, text ) VALUES ( 3, :text );");
+$notifdatabase = new PDO($notifications_url, $notifications_username, $notifications_password);
+$notifdatabase->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$notifications_statement = $notifdatabase->prepare("INSERT INTO notification ( type, text ) VALUES ( 3, :text );");
 
 $cookieJar = "/home/" . $_SERVER['USER'] . "/CURLCOOKIE";
 $curlOpt = array(
