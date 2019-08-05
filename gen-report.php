@@ -151,7 +151,7 @@ foreach ($result as $req) {
 
     $substitutions = [
         0 => $req['forwardedip'],
-        1 => '2018-08-01T00:00:00.000Z', // three months from last request. We should probably autodiscover this.
+        1 => '2018-11-25T00:00:00.000Z', // three months from last request. We should probably autodiscover this.
         2 => $req['name'],
     ];
 
@@ -303,7 +303,10 @@ foreach ($result as $req) {
 
         // GLOBAL BLOCKS
         if (count($metaQuery->query->globalblocks) > 0) {
-            l($id, 'Rejected: globally blocked', count($metaQuery->query->globalblocks));
+            foreach ($metaQuery->query->globalblocks as $b) {
+                l($id, REJ_GLOBALBLOCK, print_r($b, true));
+            }
+
             $create = false;
         }
 
@@ -388,9 +391,9 @@ writeLog($requestData);
 writeEmailReport($requestData, $dbParam[':status']);
 writeXffReport($requestData);
 writeHardblockData($requestData);
+writeGlobalBlockData($requestData);
 
 file_put_contents('rqdata.dat', serialize($requestData));
-
 
 unlink($cookieJar);
 

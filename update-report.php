@@ -5,17 +5,6 @@ chdir(__DIR__);
 require('vendor/autoload.php');
 require('functions.php');
 
-@unlink('blocks.html');
-@unlink('create.html');
-@unlink('blacklist.html');
-@unlink('dqblacklist.html');
-@unlink('log.html');
-@unlink('selfcreate.html');
-@unlink('selfcreate.sql');
-@unlink('email.html');
-@unlink('email-disposable.html');
-@unlink('xff.html');
-
 $stmt = $database->query("SELECT id FROM request WHERE status = '" . $targetSection . "' AND emailconfirm = 'Confirmed' AND reserved = 0");
 $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $stmt->closeCursor();
@@ -52,5 +41,6 @@ writeBlacklistData($requestData);
 writeEmailReport($requestData, $targetSection);
 writeXffReport($requestData);
 writeHardblockData($requestData);
+writeGlobalBlockData($requestData);
 
 echo "Done.\n";

@@ -3,7 +3,7 @@
 require('config.php');
 
 const REJ_MULTIREQUEST = 'Rejected: Multiple requests detected from this IP/Email';
-const REJ_LOCALBLOCK = 'Rejected: Locally blocked';
+const REJ_LOCALBLOCK = 'Rejected: locally blocked';
 const REJ_HARDBLOCK = 'Rejected: HARD blocked';
 const REJ_HASLOCALBLOCK = 'Rejected: Local blocks exist';
 const REJ_SELFCREATE = 'Rejected: self-create';
@@ -12,6 +12,7 @@ const REJ_BLACKLIST = 'Rejected: title blacklist';
 const REJ_XFFPRESENT = 'Rejected: XFF data present';
 const REJ_SULPRESENT = 'Rejected: global account present';
 const REJ_RENAMED = 'Rejected: a user account was renamed from this name';
+const REJ_GLOBALBLOCK = 'Rejected: globally blocked';
 
 const API_META = 'https://meta.wikimedia.org/w/api.php';
 const API_ENWIKI = 'https://en.wikipedia.org/w/api.php';
@@ -21,9 +22,9 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$notifdatabase = new PDO($notifications_url, $notifications_username, $notifications_password);
-$notifdatabase->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$notifications_statement = $notifdatabase->prepare("INSERT INTO notification ( type, text ) VALUES ( 3, :text );");
+//$notifdatabase = new PDO($notifications_url, $notifications_username, $notifications_password);
+//$notifdatabase->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//$notifications_statement = $notifdatabase->prepare("INSERT INTO notification ( type, text ) VALUES ( 3, :text );");
 
 $cookieJar = "/home/" . $_SERVER['USER'] . "/CURLCOOKIE";
 $curlOpt = array(
@@ -196,9 +197,11 @@ function writeBlockData($requestData)
     $repBlocks = fopen('blocks.html', 'w');
 
     writeFileHeader($repBlocks, 'Blocks');
+    $hasItems = false;
 
     foreach ($localBlocks as $reason => $req) {
         fwrite($repBlocks, '<h3>' . htmlentities($reason) . '</h3><table>');
+        $hasItems = true;
         ksort($req);
 
         foreach ($req as $v) {
@@ -230,6 +233,11 @@ function writeBlockData($requestData)
 
     file_put_contents("blocks.js", json_encode($idList));
     fclose($repBlocks);
+
+    if(!$hasItems) {
+        $repBlocks = fopen('blocks.html', 'w');
+        fclose($repBlocks);
+    }
 }
 
 function writeLog($requestData)
@@ -272,6 +280,7 @@ function writeSelfCreateData($requestData)
     writeFileHeader($repSelfcreate, 'Self-creations');
     fwrite($repSelfcreate, '<table>');
     fwrite($repSelfcreate, '<tr><th>#</th><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
+    $hasItems = false;
 
     global $database;
     $stmt = $database->prepare('SELECT date, name FROM request WHERE id = :id');
@@ -332,6 +341,7 @@ function writeSelfCreateData($requestData)
 
         if ($scMessage !== null) {
             fwrite($repSelfcreate, $scMessage);
+            $hasItems = true;
         }
     }
 
@@ -339,11 +349,17 @@ function writeSelfCreateData($requestData)
 
     fclose($repSelfcreate);
     fclose($sqlSelfcreate);
+
+    if(!$hasItems) {
+        $repSelfcreate = fopen('selfcreate.html', 'w');
+        fclose($repSelfcreate);
+    }
 }
 
 function writeHardblockData($requestData)
 {
     $repHardblocks = fopen('hardblock.html', 'w');
+    $hasItems = false;
     writeFileHeader($repHardblocks, 'Hard blocks');
     fwrite($repHardblocks, '<table>');
     fwrite($repHardblocks, '<tr><th>Request</th><th>Log</th></tr>');
@@ -367,6 +383,8 @@ function writeHardblockData($requestData)
                 }
                 fwrite($repHardblocks, '</ul></td>');
                 fwrite($repHardblocks, '</tr>');
+
+                $hasItems = true;
             }
         }
     }
@@ -374,13 +392,61 @@ function writeHardblockData($requestData)
     fwrite($repHardblocks, '</table>');
 
     fclose($repHardblocks);
+
+    if(!$hasItems) {
+        $repHardblocks = fopen('hardblock.html', 'w');
+        fclose($repHardblocks);
+    }
+}
+
+function writeGlobalBlockData($requestData)
+{
+    $repGlobalBlocks = fopen('globalblock.html', 'w');
+    $hasItems = false;
+    writeFileHeader($repGlobalBlocks, 'Global blocks');
+    fwrite($repGlobalBlocks, '<table>');
+    fwrite($repGlobalBlocks, '<tr><th>Request</th><th>Log</th></tr>');
+
+    foreach ($requestData as $id => $data) {
+        foreach ($data as $datum) {
+            if ($datum['m'] === REJ_GLOBALBLOCK) {
+
+                fwrite($repGlobalBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . "</a></td>");
+                fwrite($repGlobalBlocks, '<td><ul>');
+                foreach ($data as $logData) {
+                    /*if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
+                        continue;
+                    }*/
+
+                    if( $logData['m'] == REJ_GLOBALBLOCK ) {
+                        fwrite($repGlobalBlocks, '<li>' . $logData['m'] . ' (' . $logData['d'][1] . ')</li>');
+                    } else {
+                        fwrite($repGlobalBlocks, '<li>' . $logData['m'] . '</li>');
+                    }
+                }
+                fwrite($repGlobalBlocks, '</ul></td>');
+                fwrite($repGlobalBlocks, '</tr>');
+
+                $hasItems = true;
+            }
+        }
+    }
+
+    fwrite($repGlobalBlocks, '</table>');
+
+    fclose($repGlobalBlocks);
+
+    if(!$hasItems) {
+        $repGlobalBlocks = fopen('globalblock.html', 'w');
+        fclose($repGlobalBlocks);
+    }
 }
 
 function writeDqBlacklistData($requestData)
 {
     $repDqBlacklist = fopen('dqblacklist.html', 'w');
-    writeFileHeader($repDqBlacklist);
-
+    writeFileHeader($repDqBlacklist, 'DQ Blacklist hits');
+    $hasItems = false;
     fwrite($repDqBlacklist, '<ul>');
 
     global $database;
@@ -394,6 +460,7 @@ function writeDqBlacklistData($requestData)
                 $stmt->closeCursor();
 
                 fwrite($repDqBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
+                $hasItems = true;
             }
         }
     }
@@ -401,12 +468,18 @@ function writeDqBlacklistData($requestData)
     fwrite($repDqBlacklist, '</ul>');
 
     fclose($repDqBlacklist);
+
+    if(!$hasItems) {
+        $repDqBlacklist = fopen('dqblacklist.html', 'w');
+        fclose($repDqBlacklist);
+    }
 }
 
 function writeBlacklistData($requestData)
 {
     $repBlacklist = fopen('blacklist.html', 'w');
-    writeFileHeader($repBlacklist);
+    $hasItems = false;
+    writeFileHeader($repBlacklist, 'Blacklist hits');
     fwrite($repBlacklist, '<ul>');
 
     global $database;
@@ -420,6 +493,7 @@ function writeBlacklistData($requestData)
                 $stmt->closeCursor();
 
                 fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
+                $hasItems = true;
             }
         }
     }
@@ -427,13 +501,18 @@ function writeBlacklistData($requestData)
     fwrite($repBlacklist, '</ul>');
 
     fclose($repBlacklist);
+
+    if(!$hasItems) {
+        $repBlacklist = fopen('blacklist.html', 'w');
+        fclose($repBlacklist);
+    }
 }
 
 function writeXffReport($requestData)
 {
     $repBlacklist = fopen('xff.html', 'w');
-    writeFileHeader($repBlacklist);
-
+    writeFileHeader($repBlacklist, 'XFF data');
+    $hasItems = false;
     $idList = array();
 
     fwrite($repBlacklist, '<ul>');
@@ -450,6 +529,7 @@ function writeXffReport($requestData)
 
                 $idList[] = $id;
                 fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ")</a></li>");
+                $hasItems = true;
             }
         }
     }
@@ -459,6 +539,11 @@ function writeXffReport($requestData)
     fwrite($repBlacklist, '</ul>');
 
     fclose($repBlacklist);
+
+    if(!$hasItems) {
+        $repBlacklist = fopen('xff.html', 'w');
+        fclose($repBlacklist);
+    }
 }
 
 function writeEmailReport($requestData, $requestState)
@@ -481,12 +566,17 @@ SQL
 
     $repEmail = fopen('email.html', 'w');
     $repDispEmail = fopen('email-disposable.html', 'w');
+
+    $emailHasItems = false;
+    $dispemailHasItems = false;
+
     writeFileHeader($repEmail, 'Email domains');
     writeFileHeader($repDispEmail, 'Disposable email addresses');
     fwrite($repDispEmail, '<ul>');
 
     foreach ($groups as $k => $idList) {
         fwrite($repEmail, '<h3>' . $k . '</h3><ul>');
+        $emailHasItems = true;
 
 	    $isDisposable = false;
         if (in_array($k, $disposable)) {
@@ -500,6 +590,7 @@ SQL
 
             fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> ' . $name);
             if($isDisposable) {
+                $dispemailHasItems = true;
 	            fwrite( $repDispEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> (' . $k . ') - ' . $name . '</li>');
             }
 
@@ -522,6 +613,15 @@ SQL
 
     fclose($repEmail);
     fclose($repDispEmail);
+
+    if(!$emailHasItems) {
+        $repEmail = fopen('email.html', 'w');
+        fclose($repEmail);
+    }
+    if(!$dispemailHasItems) {
+        $repDispEmail = fopen('email-disposable.html', 'w');
+        fclose($repDispEmail);
+    }
 }
 
 function getEmailDomainList() {
