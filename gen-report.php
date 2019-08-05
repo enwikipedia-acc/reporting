@@ -304,7 +304,7 @@ foreach ($result as $req) {
         // GLOBAL BLOCKS
         if (count($metaQuery->query->globalblocks) > 0) {
             foreach ($metaQuery->query->globalblocks as $b) {
-                l($id, REJ_GLOBALBLOCK, print_r($b, true));
+                l($id, REJ_GLOBALBLOCK, [$b->reason, $b->address, $b->timestamp, $b->expiry, $b->by]);
             }
 
             $create = false;
