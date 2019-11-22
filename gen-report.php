@@ -151,7 +151,7 @@ foreach ($result as $req) {
 
     $substitutions = [
         0 => $req['forwardedip'],
-        1 => '2018-11-25T00:00:00.000Z', // three months from last request. We should probably autodiscover this.
+        1 => '2019-01-18T00:00:00.000Z', // three months from last request. We should probably autodiscover this.
         2 => $req['name'],
     ];
 

@@ -32,7 +32,7 @@ function writeCreateData($requestData)
             'defaultinclude' => false,
             'filter' => function($data, &$includeThis) {
                 if ($data['comment'] !== '') {
-                    if(preg_match('/captcha|blind|captche|can\'t see|can\'t read|capcha/i', $data['comment'])) {
+                    if(preg_match('/captcha|blind|captche|can\'t see|can\'t read|capcha|verification|capatcha|catche|caphctha|caption|capture/i', $data['comment'])) {
                         $includeThis['create'] = false;
                         $includeThis['create-auto'] = false;
                         $includeThis['create-captcha'] = true;
@@ -64,11 +64,25 @@ function writeCreateData($requestData)
                 }
             }
         ],
+        'create-sorry' => [ // comment indicating sorry
+            'defaultinclude' => false,
+            'filter' => function($data, &$includeThis) {
+                if ($data['comment'] !== '') {
+                    if(preg_match('/sorry/i', $data['comment'])) {
+                        $includeThis['create'] = false;
+                        $includeThis['create-auto'] = false;
+                        if($includeThis['create-block'] ==false) {
+                            $includeThis['create-sorry'] = true;
+                        }
+                    }
+                }
+            }
+        ],
         'create-coi' => [ // comment indicating possible COIs
             'defaultinclude' => false,
             'filter' => function($data, &$includeThis) {
                 if ($data['comment'] !== '') {
-                    if(preg_match('/company|client|marketing|career|verified/i', $data['comment'])) {
+                    if(preg_match('/company|client|marketing|career|verified|insta|owner/i', $data['comment'])) {
                         $includeThis['create'] = false;
                         $includeThis['create-auto'] = false;
                         $includeThis['create-coi'] = true;
