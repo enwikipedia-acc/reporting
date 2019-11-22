@@ -131,42 +131,7 @@ function writeFileHeader($h, $reportName = '')
 
     fwrite($h, <<<HTML
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8" /><title>ACC Reporting$reportName</title><style type="text/css">
-    body
-    {
-        background-color: #2b2b2b;
-        color: #a9b7c6;
-        font-family: DejaVu Sans Mono, monospace;
-    }
-
-    table
-    {
-        border-collapse: collapse;
-    }
-
-    tr.row-alternate
-    {
-        background-color: #404040;
-    }
-
-    td {
-        border: 1px solid #a9b7c6;
-        padding: 3px;
-    }
-
-    td ul {
-        margin-bottom: 0px;
-        margin-block-start: 0px;
-    }
-
-    a {
-        color: #589df6;
-    }
-
-    a:visited {
-        color: #986df6;
-    }
-</style></head><body>
+<html><head><meta charset="UTF-8" /><title>ACC Reporting$reportName</title><link rel="stylesheet" href="style.css" /></head><body>
 HTML
     );
 }

@@ -1,0 +1,38 @@
+    body
+    {
+        background-color: #2b2b2b;
+        color: #a9b7c6;
+        font-family: DejaVu Sans Mono, monospace;
+    }
+
+    table
+    {
+        border-collapse: collapse;
+    }
+
+    tr.row-alternate, tr.even
+    {
+        background-color: #404040;
+    }
+
+    td {
+        border: 1px solid #a9b7c6;
+        padding: 3px;
+    }
+
+    table#indexlist td {
+        border: none;
+    }
+
+    td ul {
+        margin-bottom: 0px;
+        margin-block-start: 0px;
+    }
+
+    a {
+        color: #589df6;
+    }
+
+    a:visited {
+        color: #986df6;
+    }

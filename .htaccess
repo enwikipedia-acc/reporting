@@ -1,0 +1,26 @@
+IndexOptions +FoldersFirst +IconsAreLinks +HTMLTable
+IndexStylesheet style.css
+IndexIgnore *.js *.json *.php *.dat *.example *.lock vendor *.css *.sql
+AddDescription "Requests triggering DeltaQuad's blacklist" dqblacklist.html
+AddDescription "Requests triggering the main blacklist" blacklist.html
+AddDescription "Requests with an active block" blocks.html
+AddDescription "Requests with an active HARD block" hardblock.html
+AddDescription "Requests with an active global block" globalblock.html
+AddDescription "Requests which were probably self-created" selfcreate.html
+AddDescription "Requests probably creatable but with uncommon email domains" create-email.html
+AddDescription "Requests probably creatable with no comment" create-auto.html
+AddDescription "Requests probably creatable with no meaningful comment" create-ok.html
+AddDescription "Requests probably creatable with non-trivial comment" create.html
+AddDescription "Requests probably creatable with detected COI in the comment" create-coi.html
+AddDescription "Requests probably creatable with detected apology in the comment" create-sorry.html
+AddDescription "Requests probably creatable with accessibility problems" create-captcha.html
+AddDescription "Requests probably creatable from an editathon" create-editathon.html
+AddDescription "Requests probably creatable from an block mentioned" create-block.html
+AddDescription "Requests with uncommon email domains" email.html
+AddDescription "Requests with disposable email addresses" email-disposable.html
+AddDescription "Report generation log" log.html
+AddDescription "Requests with XFF data" xff.html
+AddDescription "Latest public-access URLs to these reports" latesturls.txt
+
+
+AddType text/plain .sql
