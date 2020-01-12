@@ -210,11 +210,15 @@ function writeLog($requestData)
     $total = count($requestData);
     $i = 0;
 
+    $hasItems = false;
+
     $repLog = fopen('log.html', 'w');
     writeFileHeader($repLog);
     fwrite($repLog, '<ul>');
 
     foreach ($requestData as $id => $logData) {
+        $hasItems = true;
+
         fwrite($repLog, '<li>Processing #' . $id . ' - ' . ++$i . ' / ' . $total . '<ul>');
         foreach ($logData as $datum) {
             if ($datum['d'] !== null) {
@@ -234,6 +238,11 @@ function writeLog($requestData)
 
     fwrite($repLog, '</ul>');
     fclose($repLog);
+
+    if(!$hasItems) {
+        $repHardblocks = fopen('hardblock.html', 'w');
+        fclose($repHardblocks);
+    }
 }
 
 include 'createdata.php';
