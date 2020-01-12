@@ -240,8 +240,8 @@ function writeLog($requestData)
     fclose($repLog);
 
     if(!$hasItems) {
-        $repHardblocks = fopen('hardblock.html', 'w');
-        fclose($repHardblocks);
+        $repLog = fopen('log.html', 'w');
+        fclose($repLog);
     }
 }
 
