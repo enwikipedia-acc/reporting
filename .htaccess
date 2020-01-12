@@ -1,6 +1,6 @@
 IndexOptions +FoldersFirst +IconsAreLinks +HTMLTable
 IndexStylesheet style.css
-IndexIgnore *.js *.json *.php *.dat *.example *.lock vendor *.css *.sql
+IndexIgnore *.js *.json *.php *.dat *.example *.lock vendor *.css *.sql *.sh
 AddDescription "Requests triggering DeltaQuad's blacklist" dqblacklist.html
 AddDescription "Requests triggering the main blacklist" blacklist.html
 AddDescription "Requests with an active block" blocks.html
