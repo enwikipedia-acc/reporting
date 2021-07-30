@@ -66,13 +66,15 @@ $notifications_statement->execute([':text' => 'Report is being run by ' . $_SERV
 
 login();
 
-$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved = 0 AND (:filterRequest = 0 OR :request = id)");
+$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved is null AND (:filterRequest = 0 OR :request = id)");
 $stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $alternatesstmt = $database->prepare("SELECT COUNT(*) FROM request WHERE (email = :email OR forwardedip LIKE CONCAT('%', :ip, '%')) AND email <> 'acc@toolserver.org' AND ip <> '127.0.0.1'");
 
 $resultCount = count($result);
+
+echo $resultCount . ' rows retrieved.' . "\n" ;
 
 // {0} = Forwarded IP
 // {1} = 2017-10-01T00%3A00%3A00.000Z  (~ 3m from oldest; hardcoded)
@@ -151,7 +153,7 @@ foreach ($result as $req) {
 
     $substitutions = [
         0 => $req['forwardedip'],
-        1 => '2019-01-18T00:00:00.000Z', // three months from last request. We should probably autodiscover this.
+        1 => date_format(date_sub(date_create($req['date']), new DateInterval('P3M')), 'Y-m-d\TH:i:s') . '.000Z',
         2 => $req['name'],
     ];
 
