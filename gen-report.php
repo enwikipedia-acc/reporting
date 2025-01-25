@@ -16,6 +16,7 @@ $dbParam[':status'] = $targetSection;
 
 $updateMode = false;
 $requestData = [];
+$requestDataLoaded = [];
 
 if(isset($options['s'])) {
     $dbParam[':status'] = $options['s'];
@@ -28,13 +29,13 @@ if (isset($options['r'])) {
 
 if (isset($options['u'])) {
     $updateMode = true;
-    $requestData = unserialize(file_get_contents('rqdata.dat'));
+    $requestDataLoaded = unserialize(file_get_contents('rqdata.dat'));
 }
 
 function initialiseDeltaQuadBlacklist()
 {
     $dqpatterns = array();
-    $dqlist = file_get_contents('https://en.wikipedia.org/w/index.php?title=User:DeltaQuad/UAA/Blacklist&action=raw');
+    $dqlist = file_get_contents('https://en.wikipedia.org/w/index.php?title=User:AmandaNP/UAA/Blacklist&action=raw');
     $dqlistlines = explode("\n", $dqlist);
 
     unset($dqlistlines[count($dqlistlines) - 1]);
@@ -62,11 +63,10 @@ function l($request, $message, $data = null)
     echo "  " . $message . "\n";
 }
 
-$notifications_statement->execute([':text' => 'Report is being run by ' . $_SERVER['USER'] . ' for section ' . $dbParam[':status']]);
 
 login();
 
-$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved is null AND (:filterRequest = 0 OR :request = id)");
+$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved is null AND (:filterRequest = 0 OR :request = id) AND queue = 3");
 $stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -142,7 +142,8 @@ foreach ($result as $req) {
     echo "Processing #" . $id . " - " . ++$i . " / $resultCount\n";
 
     if ($updateMode && $dbParam[':filterRequest'] == 0) {
-        if (isset($requestData[$id])) {
+        if (isset($requestDataLoaded[$id])) {
+            $requestData[$id] = $requestDataLoaded[$id];
             echo "  Skipping due to analysis already completed.\n";
             continue;
         }

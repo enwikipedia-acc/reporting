@@ -22,10 +22,6 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$notifdatabase = new PDO($notifications_url, $notifications_username, $notifications_password);
-$notifdatabase->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$notifications_statement = $notifdatabase->prepare("INSERT INTO notification ( type, text ) VALUES ( 3, :text );");
-
 $cookieJar = "/home/" . $_SERVER['USER'] . "/CURLCOOKIE";
 $curlOpt = array(
     CURLOPT_COOKIEFILE => $cookieJar,
@@ -302,11 +298,7 @@ function writeSelfCreateData($requestData)
 	            }
 
 	            if ($reqDate < $regDate) {
-		            $reason = 'Self-create on ' . $homeWiki;
-
-		            fwrite($sqlSelfcreate, "INSERT INTO comment (time, user, comment, visibility, request) VALUES (current_timestamp(), 7, 'Self-create on ${homeWiki}', 'user', ${id});\n");
-		            fwrite($sqlSelfcreate, "UPDATE request SET status = 'Closed', reserved = 0 WHERE id = ${id};\n");
-		            fwrite($sqlSelfcreate, "INSERT INTO log (objectid, objecttype, user, action, timestamp) VALUES (${id}, 'Request', 7, 'Closed 0', current_timestamp());\n");
+		            $reason = 'Self-create on ' . $homeWiki . '. Check if local attach is required.';
 	            }
 
                 $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";

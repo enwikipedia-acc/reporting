@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "25caa677e4e23fd8b3509290d769f7d3",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/joshtronic/php-projecthoneypot.git",
-                "reference": "1bff7911fe18d86386685819cba04f8f3ee3633e"
+                "reference": "340711b331c7eb33675c4540f4f125ccc2e443d8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joshtronic/php-projecthoneypot/zipball/1bff7911fe18d86386685819cba04f8f3ee3633e",
-                "reference": "1bff7911fe18d86386685819cba04f8f3ee3633e",
+                "url": "https://api.github.com/repos/joshtronic/php-projecthoneypot/zipball/340711b331c7eb33675c4540f4f125ccc2e443d8",
+                "reference": "340711b331c7eb33675c4540f4f125ccc2e443d8",
                 "shasum": ""
             },
             "require-dev": {
@@ -50,7 +50,7 @@
                 "spam",
                 "spammer"
             ],
-            "time": "2015-06-24T03:00:05+00:00"
+            "time": "2020-03-03T02:55:28+00:00"
         },
         {
             "name": "wesbos/burner-email-providers",
@@ -58,12 +58,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wesbos/burner-email-providers.git",
-                "reference": "3df5c66101badb46f5c6c9d1b5c9de175c8a4b08"
+                "reference": "e08d5fdd01b7331263f49263153ccd73edfa7830"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wesbos/burner-email-providers/zipball/3df5c66101badb46f5c6c9d1b5c9de175c8a4b08",
-                "reference": "3df5c66101badb46f5c6c9d1b5c9de175c8a4b08",
+                "url": "https://api.github.com/repos/wesbos/burner-email-providers/zipball/e08d5fdd01b7331263f49263153ccd73edfa7830",
+                "reference": "e08d5fdd01b7331263f49263153ccd73edfa7830",
                 "shasum": ""
             },
             "type": "library",
@@ -88,7 +88,7 @@
                 "source": "https://github.com/wesbos/burner-email-providers",
                 "issues": "https://github.com/wesbos/burner-email-providers/issues"
             },
-            "time": "2019-05-14T08:30:27+00:00"
+            "time": "2020-04-17T10:43:27+00:00"
         }
     ],
     "packages-dev": [],
