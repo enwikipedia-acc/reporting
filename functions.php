@@ -246,7 +246,6 @@ include 'createdata.php';
 function writeSelfCreateData($requestData)
 {
     $repSelfcreate = fopen('selfcreate.html', 'w');
-    $sqlSelfcreate = fopen('selfcreate.sql', 'w');
     writeFileHeader($repSelfcreate, 'Self-creations');
     fwrite($repSelfcreate, '<table>');
     fwrite($repSelfcreate, '<tr><th>#</th><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
@@ -271,15 +270,7 @@ function writeSelfCreateData($requestData)
                     $reason = 'Taken';
                 }
 
-                if ($reqDate < $regDate) {
-                    $reason = 'Self-create';
-
-                    fwrite($sqlSelfcreate, "INSERT INTO comment (time, user, comment, visibility, request) VALUES (current_timestamp(), 7, 'self-create', 'user', ${id});\n");
-                    fwrite($sqlSelfcreate, "UPDATE request SET status = 'Closed', reserved = 0 WHERE id = ${id};\n");
-                    fwrite($sqlSelfcreate, "INSERT INTO log (objectid, objecttype, user, action, timestamp) VALUES (${id}, 'Request', 7, 'Closed 0', current_timestamp());\n");
-                }
-
-                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
+                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $req['name'] . "</a></td><td>" . $datum['d'] . "</td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
 
             if ($datum['m'] === REJ_SULPRESENT && $scMessage === null) {
@@ -301,7 +292,7 @@ function writeSelfCreateData($requestData)
 		            $reason = 'Self-create on ' . $homeWiki . '. Check if local attach is required.';
 	            }
 
-                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
+                $scMessage = '<tr><th>'.$id.'</th><td><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $req['name'] . "</a></td><td></td><td>" . $req['date'] . "</td><td>" . $reason . "</td></tr>";
             }
         }
 
@@ -314,7 +305,6 @@ function writeSelfCreateData($requestData)
     fwrite($repSelfcreate, '</table>');
 
     fclose($repSelfcreate);
-    fclose($sqlSelfcreate);
 
     if(!$hasItems) {
         $repSelfcreate = fopen('selfcreate.html', 'w');
@@ -334,7 +324,7 @@ function writeHardblockData($requestData)
         foreach ($data as $datum) {
             if ($datum['m'] === REJ_HARDBLOCK) {
 
-                fwrite($repHardblocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . "</a></td>");
+                fwrite($repHardblocks, '<tr><td><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $id . "</a></td>");
                 fwrite($repHardblocks, '<td><ul>');
                 foreach ($data as $logData) {
                     /*if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
@@ -377,7 +367,7 @@ function writeGlobalBlockData($requestData)
         foreach ($data as $datum) {
             if ($datum['m'] === REJ_GLOBALBLOCK) {
 
-                fwrite($repGlobalBlocks, '<tr><td><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . "</a></td>");
+                fwrite($repGlobalBlocks, '<tr><td><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $id . "</a></td>");
                 fwrite($repGlobalBlocks, '<td><ul>');
                 foreach ($data as $logData) {
                     /*if ($logData['m'] == REJ_HASLOCALBLOCK || $logData['m'] == REJ_LOCALBLOCK) {
@@ -425,7 +415,7 @@ function writeDqBlacklistData($requestData)
                 $req = $stmt->fetchColumn();
                 $stmt->closeCursor();
 
-                fwrite($repDqBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
+                fwrite($repDqBlacklist, '<li><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
                 $hasItems = true;
             }
         }
@@ -458,7 +448,7 @@ function writeBlacklistData($requestData)
                 $req = $stmt->fetchColumn();
                 $stmt->closeCursor();
 
-                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
+                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">#' . $id . " (" . htmlentities($req) . ") matches: " . htmlentities($datum['d']) . "</a></li>");
                 $hasItems = true;
             }
         }
@@ -494,7 +484,7 @@ function writeXffReport($requestData)
                 $stmt->closeCursor();
 
                 $idList[] = $id;
-                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">#' . $id . " (" . htmlentities($req) . ")</a></li>");
+                fwrite($repBlacklist, '<li><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">#' . $id . " (" . htmlentities($req) . ")</a></li>");
                 $hasItems = true;
             }
         }
@@ -512,14 +502,14 @@ function writeXffReport($requestData)
     }
 }
 
-function writeEmailReport($requestData, $requestState)
+function writeEmailReport($requestData)
 {
     global $database;
 	$disposable = file('vendor/wesbos/burner-email-providers/emails.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 	$emailDomainList = "'" . implode("','", getEmailDomainList()) . "'";
     $stmt = $database->query(<<<SQL
-SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = '${requestState}' AND emailconfirm = 'Confirmed' AND reserved = 0
+SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0
 AND substring_index(email, '@', -1) NOT IN (${emailDomainList})
 ORDER BY 1 ASC
 SQL
@@ -554,10 +544,10 @@ SQL
             $name = $stmt->fetchColumn();
             $stmt->closeCursor();
 
-            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> ' . $name);
+            fwrite($repEmail, '<li><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $id . '</a> ' . $name);
             if($isDisposable) {
                 $dispemailHasItems = true;
-	            fwrite( $repDispEmail, '<li><a href="https://accounts.wmflabs.org/acc.php?action=zoom&id=' . $id . '">' . $id . '</a> (' . $k . ') - ' . $name . '</li>');
+	            fwrite( $repDispEmail, '<li><a href="https://accounts.wmflabs.org/internal.php/viewRequest?id=' . $id . '">' . $id . '</a> (' . $k . ') - ' . $name . '</li>');
             }
 
             if (isset($requestData[$id])) {

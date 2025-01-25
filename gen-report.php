@@ -7,20 +7,15 @@ require('vendor/autoload.php');
 require('functions.php');
 $hpbl = new joshtronic\ProjectHoneyPot($honeypotKey);
 
-$options = getopt('s:r:u');
+$options = getopt('r:u');
 
 $dbParam = [];
 $dbParam[':filterRequest'] = 0;
 $dbParam[':request'] = 0;
-$dbParam[':status'] = $targetSection;
 
 $updateMode = false;
 $requestData = [];
 $requestDataLoaded = [];
-
-if(isset($options['s'])) {
-    $dbParam[':status'] = $options['s'];
-}
 
 if (isset($options['r'])) {
     $dbParam[':filterRequest'] = 1;
@@ -66,7 +61,7 @@ function l($request, $message, $data = null)
 
 login();
 
-$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = :status AND emailconfirm = 'Confirmed' AND reserved is null AND (:filterRequest = 0 OR :request = id) AND queue = 3");
+$stmt = $database->prepare("SELECT id, name, forwardedip, date, email FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved is null AND (:filterRequest = 0 OR :request = id) AND queue = 3");
 $stmt->execute($dbParam);
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -391,7 +386,7 @@ writeSelfCreateData($requestData);
 writeDqBlacklistData($requestData);
 writeBlacklistData($requestData);
 writeLog($requestData);
-writeEmailReport($requestData, $dbParam[':status']);
+writeEmailReport($requestData);
 writeXffReport($requestData);
 writeHardblockData($requestData);
 writeGlobalBlockData($requestData);
