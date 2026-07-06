@@ -8,3 +8,7 @@ $honeypotKey = '';
 
 $wikiuser = '';
 $wikipass = '';
+
+// Optional: directory to write report output files to. Defaults to the
+// script's own directory if left blank.
+$outputDir = '';

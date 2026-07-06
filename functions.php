@@ -2,6 +2,17 @@
 
 require('config.php');
 
+if (empty($outputDir)) {
+    $outputDir = '.';
+}
+
+function outputPath($filename)
+{
+    global $outputDir;
+
+    return rtrim($outputDir, '/') . '/' . $filename;
+}
+
 const REJ_MULTIREQUEST = 'Rejected: Multiple requests detected from this IP/Email';
 const REJ_LOCALBLOCK = 'Rejected: locally blocked';
 const REJ_HARDBLOCK = 'Rejected: HARD blocked';
@@ -132,6 +143,51 @@ HTML
     );
 }
 
+function writeIndexData()
+{
+    $reports = [
+        ['dqblacklist.html', "Requests triggering DeltaQuad's blacklist"],
+        ['blacklist.html', 'Requests triggering the main blacklist'],
+        ['blocks.html', 'Requests with an active block'],
+        ['hardblock.html', 'Requests with an active HARD block'],
+        ['globalblock.html', 'Requests with an active global block'],
+        ['selfcreate.html', 'Requests which were probably self-created'],
+        ['create-email.html', 'Requests probably creatable but with uncommon email domains'],
+        ['create-auto.html', 'Requests probably creatable with no comment'],
+        ['create-ok.html', 'Requests probably creatable with no meaningful comment'],
+        ['create.html', 'Requests probably creatable with non-trivial comment'],
+        ['create-coi.html', 'Requests probably creatable with detected COI in the comment'],
+        ['create-sorry.html', 'Requests probably creatable with detected apology in the comment'],
+        ['create-captcha.html', 'Requests probably creatable with accessibility problems'],
+        ['create-editathon.html', 'Requests probably creatable from an editathon'],
+        ['create-block.html', 'Requests probably creatable from an block mentioned'],
+        ['email.html', 'Requests with uncommon email domains'],
+        ['email-disposable.html', 'Requests with disposable email addresses'],
+        ['log.html', 'Report generation log'],
+        ['xff.html', 'Requests with XFF data'],
+    ];
+
+    $repIndex = fopen(outputPath('index.html'), 'w');
+    writeFileHeader($repIndex, 'Index');
+    fwrite($repIndex, '<table id="indexlist">');
+
+    foreach ($reports as [$filename, $description]) {
+        $path = outputPath($filename);
+        $hasItems = file_exists($path) && filesize($path) > 0;
+
+        fwrite($repIndex, '<tr><td>');
+        if ($hasItems) {
+            fwrite($repIndex, '<a href="' . htmlentities($filename) . '">' . htmlentities($filename) . '</a>');
+        } else {
+            fwrite($repIndex, '<span style="color:#666;">' . htmlentities($filename) . ' (no items)</span>');
+        }
+        fwrite($repIndex, '</td><td>' . htmlentities($description) . '</td></tr>');
+    }
+
+    fwrite($repIndex, '</table>');
+    fclose($repIndex);
+}
+
 function writeBlockData($requestData)
 {
     $idList = array();
@@ -155,7 +211,7 @@ function writeBlockData($requestData)
 
     ksort($localBlocks);
 
-    $repBlocks = fopen('blocks.html', 'w');
+    $repBlocks = fopen(outputPath('blocks.html'), 'w');
 
     writeFileHeader($repBlocks, 'Blocks');
     $hasItems = false;
@@ -192,11 +248,11 @@ function writeBlockData($requestData)
         fwrite($repBlocks, '</table>');
     }
 
-    file_put_contents("blocks.js", json_encode($idList));
+    file_put_contents(outputPath("blocks.js"), json_encode($idList));
     fclose($repBlocks);
 
     if(!$hasItems) {
-        $repBlocks = fopen('blocks.html', 'w');
+        $repBlocks = fopen(outputPath('blocks.html'), 'w');
         fclose($repBlocks);
     }
 }
@@ -208,7 +264,7 @@ function writeLog($requestData)
 
     $hasItems = false;
 
-    $repLog = fopen('log.html', 'w');
+    $repLog = fopen(outputPath('log.html'), 'w');
     writeFileHeader($repLog);
     fwrite($repLog, '<ul>');
 
@@ -236,7 +292,7 @@ function writeLog($requestData)
     fclose($repLog);
 
     if(!$hasItems) {
-        $repLog = fopen('log.html', 'w');
+        $repLog = fopen(outputPath('log.html'), 'w');
         fclose($repLog);
     }
 }
@@ -245,7 +301,7 @@ include 'createdata.php';
 
 function writeSelfCreateData($requestData)
 {
-    $repSelfcreate = fopen('selfcreate.html', 'w');
+    $repSelfcreate = fopen(outputPath('selfcreate.html'), 'w');
     writeFileHeader($repSelfcreate, 'Self-creations');
     fwrite($repSelfcreate, '<table>');
     fwrite($repSelfcreate, '<tr><th>#</th><th>Request</th><th>Registration</th><th>Request</th><th>Result</th></tr>');
@@ -307,14 +363,14 @@ function writeSelfCreateData($requestData)
     fclose($repSelfcreate);
 
     if(!$hasItems) {
-        $repSelfcreate = fopen('selfcreate.html', 'w');
+        $repSelfcreate = fopen(outputPath('selfcreate.html'), 'w');
         fclose($repSelfcreate);
     }
 }
 
 function writeHardblockData($requestData)
 {
-    $repHardblocks = fopen('hardblock.html', 'w');
+    $repHardblocks = fopen(outputPath('hardblock.html'), 'w');
     $hasItems = false;
     writeFileHeader($repHardblocks, 'Hard blocks');
     fwrite($repHardblocks, '<table>');
@@ -350,14 +406,14 @@ function writeHardblockData($requestData)
     fclose($repHardblocks);
 
     if(!$hasItems) {
-        $repHardblocks = fopen('hardblock.html', 'w');
+        $repHardblocks = fopen(outputPath('hardblock.html'), 'w');
         fclose($repHardblocks);
     }
 }
 
 function writeGlobalBlockData($requestData)
 {
-    $repGlobalBlocks = fopen('globalblock.html', 'w');
+    $repGlobalBlocks = fopen(outputPath('globalblock.html'), 'w');
     $hasItems = false;
     writeFileHeader($repGlobalBlocks, 'Global blocks');
     fwrite($repGlobalBlocks, '<table>');
@@ -393,14 +449,14 @@ function writeGlobalBlockData($requestData)
     fclose($repGlobalBlocks);
 
     if(!$hasItems) {
-        $repGlobalBlocks = fopen('globalblock.html', 'w');
+        $repGlobalBlocks = fopen(outputPath('globalblock.html'), 'w');
         fclose($repGlobalBlocks);
     }
 }
 
 function writeDqBlacklistData($requestData)
 {
-    $repDqBlacklist = fopen('dqblacklist.html', 'w');
+    $repDqBlacklist = fopen(outputPath('dqblacklist.html'), 'w');
     writeFileHeader($repDqBlacklist, 'DQ Blacklist hits');
     $hasItems = false;
     fwrite($repDqBlacklist, '<ul>');
@@ -426,14 +482,14 @@ function writeDqBlacklistData($requestData)
     fclose($repDqBlacklist);
 
     if(!$hasItems) {
-        $repDqBlacklist = fopen('dqblacklist.html', 'w');
+        $repDqBlacklist = fopen(outputPath('dqblacklist.html'), 'w');
         fclose($repDqBlacklist);
     }
 }
 
 function writeBlacklistData($requestData)
 {
-    $repBlacklist = fopen('blacklist.html', 'w');
+    $repBlacklist = fopen(outputPath('blacklist.html'), 'w');
     $hasItems = false;
     writeFileHeader($repBlacklist, 'Blacklist hits');
     fwrite($repBlacklist, '<ul>');
@@ -459,14 +515,14 @@ function writeBlacklistData($requestData)
     fclose($repBlacklist);
 
     if(!$hasItems) {
-        $repBlacklist = fopen('blacklist.html', 'w');
+        $repBlacklist = fopen(outputPath('blacklist.html'), 'w');
         fclose($repBlacklist);
     }
 }
 
 function writeXffReport($requestData)
 {
-    $repBlacklist = fopen('xff.html', 'w');
+    $repBlacklist = fopen(outputPath('xff.html'), 'w');
     writeFileHeader($repBlacklist, 'XFF data');
     $hasItems = false;
     $idList = array();
@@ -490,14 +546,14 @@ function writeXffReport($requestData)
         }
     }
 
-    file_put_contents("xff.js", json_encode($idList));
+    file_put_contents(outputPath("xff.js"), json_encode($idList));
 
     fwrite($repBlacklist, '</ul>');
 
     fclose($repBlacklist);
 
     if(!$hasItems) {
-        $repBlacklist = fopen('xff.html', 'w');
+        $repBlacklist = fopen(outputPath('xff.html'), 'w');
         fclose($repBlacklist);
     }
 }
@@ -520,8 +576,8 @@ SQL
 
     $stmt = $database->prepare('SELECT name FROM request WHERE id = :id');
 
-    $repEmail = fopen('email.html', 'w');
-    $repDispEmail = fopen('email-disposable.html', 'w');
+    $repEmail = fopen(outputPath('email.html'), 'w');
+    $repDispEmail = fopen(outputPath('email-disposable.html'), 'w');
 
     $emailHasItems = false;
     $dispemailHasItems = false;
@@ -571,11 +627,11 @@ SQL
     fclose($repDispEmail);
 
     if(!$emailHasItems) {
-        $repEmail = fopen('email.html', 'w');
+        $repEmail = fopen(outputPath('email.html'), 'w');
         fclose($repEmail);
     }
     if(!$dispemailHasItems) {
-        $repDispEmail = fopen('email-disposable.html', 'w');
+        $repDispEmail = fopen(outputPath('email-disposable.html'), 'w');
         fclose($repDispEmail);
     }
 }

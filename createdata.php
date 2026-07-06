@@ -105,7 +105,7 @@ function writeCreateData($requestData)
     ];
 
     foreach (array_keys($criteria) as $key) {
-        $criteria[$key]['html'] = fopen($key.'.html', 'w');
+        $criteria[$key]['html'] = fopen(outputPath($key.'.html'), 'w');
 
         $criteria[$key]['hasitems'] = false;
 
@@ -179,7 +179,7 @@ function writeCreateData($requestData)
         $alternateSwitched = false;
     }
 
-    file_put_contents("create.js", json_encode($idList));
+    file_put_contents(outputPath("create.js"), json_encode($idList));
 
     foreach (array_keys($criteria) as $key) {
         fwrite($criteria[$key]['html'], '</table>');
@@ -187,7 +187,7 @@ function writeCreateData($requestData)
 
         // no items; nuke file content.
         if(!$criteria[$key]['hasitems']) {
-            fclose(fopen($key.'.html', 'w'));
+            fclose(fopen(outputPath($key.'.html'), 'w'));
         }
     }
 }

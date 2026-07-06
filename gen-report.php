@@ -24,7 +24,7 @@ if (isset($options['r'])) {
 
 if (isset($options['u'])) {
     $updateMode = true;
-    $requestDataLoaded = unserialize(file_get_contents('rqdata.dat'));
+    $requestDataLoaded = unserialize(file_get_contents(outputPath('rqdata.dat')));
 }
 
 function initialiseDeltaQuadBlacklist()
@@ -127,7 +127,7 @@ $metaGeneralQuery = [
     'guiuser' => '{2}',
 ];
 
-$repLog = fopen('log.html', 'w');
+$repLog = fopen(outputPath('log.html'), 'w');
 
 $dqpatterns = initialiseDeltaQuadBlacklist();
 
@@ -390,8 +390,9 @@ writeEmailReport($requestData);
 writeXffReport($requestData);
 writeHardblockData($requestData);
 writeGlobalBlockData($requestData);
+writeIndexData();
 
-file_put_contents('rqdata.dat', serialize($requestData));
+file_put_contents(outputPath('rqdata.dat'), serialize($requestData));
 
 unlink($cookieJar);
 
