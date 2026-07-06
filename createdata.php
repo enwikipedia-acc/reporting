@@ -134,6 +134,9 @@ function writeCreateData($requestData)
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
 
+            // comment is nullable in the DB; normalise so string functions don't warn
+            $data['comment'] = $data['comment'] ?? '';
+
             // row alternate colours
             $dateFlag = explode(' ', $data['date']);
             if($lastDate != $dateFlag[0]) {

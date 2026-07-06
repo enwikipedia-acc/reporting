@@ -2,6 +2,10 @@
   "repositories":[
     {
         "type": "vcs",
+        "url": "https://git.sherver.org/joshtronic/php-projecthoneypot.git"
+    },
+    {
+        "type": "vcs",
         "url": "git@github.com:wesbos/burner-email-providers.git"
     }
   ],

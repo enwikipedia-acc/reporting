@@ -33,7 +33,7 @@ const API_XTOOLS = 'https://xtools.wmflabs.org/api/user/simple_editcount/en.wiki
 $database = new PDO($dburl, $dbuser, $dbpass);
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$cookieJar = "/home/" . $_SERVER['USER'] . "/CURLCOOKIE";
+$cookieJar = sys_get_temp_dir() . "/CURLCOOKIE";
 $curlOpt = array(
     CURLOPT_COOKIEFILE => $cookieJar,
     CURLOPT_COOKIEJAR => $cookieJar,
@@ -566,7 +566,7 @@ function writeEmailReport($requestData)
 	$emailDomainList = "'" . implode("','", getEmailDomainList()) . "'";
     $stmt = $database->query(<<<SQL
 SELECT substring_index(email, '@', -1) domain, id FROM request WHERE status = 'Open' AND emailconfirm = 'Confirmed' AND reserved = 0
-AND substring_index(email, '@', -1) NOT IN (${emailDomainList})
+AND substring_index(email, '@', -1) NOT IN ({$emailDomainList})
 ORDER BY 1 ASC
 SQL
     );

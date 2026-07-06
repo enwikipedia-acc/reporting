@@ -7,6 +7,9 @@ require('vendor/autoload.php');
 require('functions.php');
 $hpbl = new joshtronic\ProjectHoneyPot($honeypotKey);
 
+// Copy the static stylesheet alongside the generated reports so it is served.
+copy('style.css', outputPath('style.css'));
+
 $options = getopt('r:u');
 
 $dbParam = [];
@@ -120,6 +123,7 @@ $metaGeneralQuery = [
     'meta' => 'globaluserinfo',
 
     'bgip' => '{0}',
+    'bgprop' => 'target|by|timestamp|expiry|reason',
 
     'letitle' => 'User:{0}',
     'letype' => 'gblblock',
@@ -302,7 +306,7 @@ foreach ($result as $req) {
         // GLOBAL BLOCKS
         if (count($metaQuery->query->globalblocks) > 0) {
             foreach ($metaQuery->query->globalblocks as $b) {
-                l($id, REJ_GLOBALBLOCK, [$b->reason, $b->address, $b->timestamp, $b->expiry, $b->by]);
+                l($id, REJ_GLOBALBLOCK, [$b->reason, $b->target ?? $b->address ?? '', $b->timestamp, $b->expiry, $b->by]);
             }
 
             $create = false;

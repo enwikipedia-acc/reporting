@@ -1,0 +1,15 @@
+.git
+config.php
+vendor/
+*.html
+*.js
+*.sql
+*.dat
+rqdata.dat
+latesturls.txt
+composer.phar
+.idea
+checkuser/
+proxy/
+Dockerfile
+.dockerignore
