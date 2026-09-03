@@ -115,7 +115,7 @@ function writeCreateData($requestData)
     }
 
     global $database;
-    $stmt = $database->prepare('SELECT name, date, email, comment FROM request WHERE id = :id');
+    $stmt = $database->prepare('SELECT r.name, r.date, r.email, c.comment FROM request r LEFT JOIN comment c ON c.request = r.id AND c.visibility = "requester" WHERE r.id :id');
 
     $alternate = true;
     $alternateSwitched = false;
@@ -127,7 +127,7 @@ function writeCreateData($requestData)
             foreach ($criteria as $key => $value) {
                 $includeThis[$key] = $value['defaultinclude'];
             }
-            
+
             $lineOutput = '';
 
             $stmt->execute([':id' => $id]);
